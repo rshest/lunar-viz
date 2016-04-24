@@ -11369,27 +11369,40 @@ Elm.Main.make = function (_elm) {
    $Transform2D = Elm.Transform2D.make(_elm),
    $Window = Elm.Window.make(_elm);
    var _op = {};
-   var foldUpdates = F2(function (update,roverPos) {
-      var _p0 = update;
-      return roverPos + 1.0e-2 * 0.1;
-   });
    var Tick = function (a) {    return {ctor: "Tick",_0: a};};
-   var updates = $Signal.mergeMany(_U.list([A2($Signal.map,
-   Tick,
-   $Time.every($Time.second * 1.0e-2))]));
    var img = F3(function (name,w,h) {
       return A3($Graphics$Element.image,
       w,
       h,
       A2($Basics._op["++"],"img/",A2($Basics._op["++"],name,".png")));
    });
+   var fuelConsumption = 5;
+   var moveSpeed = 0.1;
+   var updMove = F3(function (state,dt,n) {
+      var dp = state.dir * dt * moveSpeed;
+      var fuel = state.fuel - dp * fuelConsumption;
+      var pos = state.pos - dp;
+      return _U.update(state,{pos: pos,fuel: A2($Basics.max,fuel,0)});
+   });
+   var roverExt = {ctor: "_Tuple3",_0: 66,_1: 52,_2: 20};
+   var wheelOffsR = {ctor: "_Tuple2",_0: 10,_1: -5};
+   var wheelOffsL = {ctor: "_Tuple2",_0: -20,_1: -7};
+   var shakeSpeed = 250;
+   var wheelRotSpeed = 80;
+   var wheelSize = 17;
+   var barrelExt = {ctor: "_Tuple3",_0: 20,_1: 29,_2: 9};
+   var tickTime = 2.0e-2;
+   var updates = $Signal.mergeMany(_U.list([A2($Signal.map,
+   Tick,
+   $Time.every($Time.second * tickTime))]));
    var moonRad = 155;
-   var barrel = F3(function (offsX,offsY,_p1) {
-      var _p2 = _p1;
-      var _p3 = {ctor: "_Tuple2",_0: 20,_1: 29};
-      var w = _p3._0;
-      var h = _p3._1;
-      var hf = (h - 9) * _p2._1;
+   var barrel = F3(function (offsX,offsY,_p0) {
+      var _p1 = _p0;
+      var _p2 = barrelExt;
+      var w = _p2._0;
+      var h = _p2._1;
+      var lid = _p2._2;
+      var hf = (h - lid) * _p1._1;
       var g = A2($Graphics$Collage.moveY,
       moonRad,
       $Graphics$Collage.group(_U.list([A2($Graphics$Collage.moveY,
@@ -11399,108 +11412,172 @@ Elm.Main.make = function (_elm) {
                                       A2($Graphics$Collage.rect,w - 4,hf)))
                                       ,$Graphics$Collage.toForm(A3(img,"barrel",w,h))])));
       return A2($Graphics$Collage.rotate,
-      _p2._0 * 2 * $Basics.pi,
+      _p1._0 * 2 * $Basics.pi,
       A2($Graphics$Collage.move,
       {ctor: "_Tuple2",_0: offsX,_1: offsY},
       $Graphics$Collage.group(_U.list([g]))));
    });
-   var wheel = F3(function (offsX,offsY,rot) {
+   var wheel = F2(function (offs,rot) {
       return A2($Graphics$Collage.moveY,
       moonRad,
       A2($Graphics$Collage.rotate,
-      rot * 800,
+      rot * wheelRotSpeed,
       A2($Graphics$Collage.move,
-      {ctor: "_Tuple2",_0: offsX,_1: offsY},
-      $Graphics$Collage.toForm(A3(img,"wheel",17,17)))));
+      offs,
+      $Graphics$Collage.toForm(A3(img,
+      "wheel",
+      wheelSize,
+      wheelSize)))));
    });
-   var rover = F4(function (pos,dir,fillRatio,spareFill) {
-      var gait = $Basics.sin(pos * 250);
-      var wheelm = pos * 0.1 * dir;
+   var rover = function (_p3) {
+      var _p4 = _p3;
+      var _p8 = _p4.spare;
+      var _p7 = _p4.pos;
+      var _p6 = _p4.dir;
+      var shake = $Basics.sin(_p7 * shakeSpeed);
+      var wheelm = _p7 * _p6;
+      var _p5 = roverExt;
+      var w = _p5._0;
+      var h = _p5._1;
+      var hoffs = _p5._2;
       return A2($Graphics$Collage.rotate,
-      pos * 2 * $Basics.pi * dir,
+      _p7 * 2 * $Basics.pi * _p6,
       A2($Graphics$Collage.groupTransform,
-      $Transform2D.scaleX(dir),
+      $Transform2D.scaleX(_p6),
       _U.list([A3(barrel,
               -20,
-              23 + gait,
-              {ctor: "_Tuple2",_0: 0,_1: fillRatio})
-              ,_U.cmp(spareFill,0) > -1 ? A3(barrel,
+              23 + shake,
+              {ctor: "_Tuple2",_0: 0,_1: _p4.fuel})
+              ,_U.cmp(_p8,0) > -1 ? A3(barrel,
               26,
-              12 - gait,
+              12 - shake,
               {ctor: "_Tuple2"
               ,_0: 0
-              ,_1: spareFill}) : $Graphics$Collage.group(_U.list([]))
+              ,_1: _p8}) : $Graphics$Collage.group(_U.list([]))
               ,A2($Graphics$Collage.moveY,
-              moonRad + 20 + gait,
-              $Graphics$Collage.toForm(A3(img,"rover",66,52)))
-              ,A3(wheel,-20,-7,wheelm + 1.5)
-              ,A3(wheel,10,-5,wheelm + 0.1)])));
-   });
-   var lunarScene = F2(function (roverPos,barrelPos) {
+              moonRad + hoffs + shake,
+              $Graphics$Collage.toForm(A3(img,"rover",w,h)))
+              ,A2(wheel,wheelOffsL,wheelm + 1.5)
+              ,A2(wheel,wheelOffsR,wheelm + 0.1)])));
+   };
+   var scene = function (state) {
       return A3($Graphics$Collage.collage,
       400,
       400,
       _U.list([$Graphics$Collage.toForm(A3(img,"moon",400,400))
-              ,$Graphics$Collage.group(A2($List.map,A2(barrel,0,0),barrelPos))
-              ,A4(rover,0 - roverPos,1,0.5,1)]));
-   });
-   var barrels = _U.list([{ctor: "_Tuple2",_0: 0.1,_1: 0.5}
-                         ,{ctor: "_Tuple2",_0: 0.2,_1: 0.5}
-                         ,{ctor: "_Tuple2",_0: 0.3,_1: 0.25}
-                         ,{ctor: "_Tuple2",_0: 0.7,_1: 0.75}
-                         ,{ctor: "_Tuple2",_0: 0.3,_1: 1}
-                         ,{ctor: "_Tuple2",_0: 0.9,_1: 1}
-                         ,{ctor: "_Tuple2",_0: 0.5,_1: 1}
-                         ,{ctor: "_Tuple2",_0: 0.25,_1: 0.6}
-                         ,{ctor: "_Tuple2",_0: 0.75,_1: 0.6}]);
-   var view = F2(function (roverPos,_p4) {
-      var _p5 = _p4;
+              ,$Graphics$Collage.group(A2($List.map,
+              A2(barrel,0,0),
+              state.barrels))
+              ,rover(state)]));
+   };
+   var view = F2(function (state,_p9) {
+      var _p10 = _p9;
       return A4($Graphics$Element.container,
-      _p5._0,
-      _p5._1,
+      _p10._0,
+      _p10._1,
       $Graphics$Element.midLeft,
-      A2(lunarScene,roverPos,barrels));
+      scene(state));
    });
-   var main = A3($Signal.map2,
-   view,
-   A3($Signal.foldp,foldUpdates,0,updates),
-   $Window.dimensions);
    var Dump = {ctor: "Dump"};
+   var Pick = function (a) {    return {ctor: "Pick",_0: a};};
+   var Wait = function (a) {    return {ctor: "Wait",_0: a};};
    var Fill = function (a) {    return {ctor: "Fill",_0: a};};
    var Load = function (a) {    return {ctor: "Load",_0: a};};
    var Move = function (a) {    return {ctor: "Move",_0: a};};
-   var route = _U.list([_U.list([Move(-0.1),Dump,Move(0.1)])
-                       ,_U.list([Move(0.1),Dump,Move(-0.1)])
-                       ,_U.list([Move(-0.1)
-                                ,Load(0.5)
-                                ,Move(-0.1)
-                                ,Dump
-                                ,Move(0.1)
-                                ,Load(0.5)
-                                ,Move(0.1)])
-                       ,_U.list([Move(0.1)
-                                ,Load(0.5)
-                                ,Move(0.1)
-                                ,Dump
-                                ,Move(-0.1)
-                                ,Load(0.5)
-                                ,Move(-0.1)])]);
+   var route = _U.list([Move(20)
+                       ,Load(100)
+                       ,Pick(100)
+                       ,Move(-10)
+                       ,Dump
+                       ,Move(10)
+                       ,Load(100)
+                       ,Pick(100)
+                       ,Move(10)
+                       ,Dump
+                       ,Move(-10)
+                       ,Load(100)
+                       ,Pick(100)
+                       ,Move(-10)
+                       ,Load(50)
+                       ,Move(-10)
+                       ,Dump
+                       ,Move(10)
+                       ,Load(50)
+                       ,Move(10)
+                       ,Load(100)
+                       ,Pick(100)
+                       ,Move(10)
+                       ,Load(50)
+                       ,Move(10)
+                       ,Dump
+                       ,Move(-10)
+                       ,Load(50)
+                       ,Move(-10)
+                       ,Load(100)
+                       ,Pick(100)
+                       ,Move(10000000)]);
+   var advance = F2(function (state,dt) {
+      var anim = state.anim + dt;
+      var action = $List.head(A2($List.drop,state.step,route));
+      var _p11 = action;
+      if (_p11.ctor === "Just") {
+            switch (_p11._0.ctor)
+            {case "Move": return A3(updMove,state,dt,_p11._0._0);
+               case "Load": return state;
+               case "Fill": return state;
+               case "Wait": return state;
+               case "Pick": return state;
+               default: return state;}
+         } else {
+            return state;
+         }
+   });
+   var foldUpdates = F2(function (update,state) {
+      var _p12 = update;
+      return A2(advance,state,tickTime);
+   });
+   var main = A3($Signal.map2,
+   view,
+   A3($Signal.foldp,
+   foldUpdates,
+   {pos: 0
+   ,dir: 1
+   ,fuel: 1
+   ,spare: 1
+   ,barrels: _U.list([])
+   ,step: 0
+   ,anim: 1},
+   updates),
+   $Window.dimensions);
    return _elm.Main.values = {_op: _op
                              ,Move: Move
                              ,Load: Load
                              ,Fill: Fill
+                             ,Wait: Wait
+                             ,Pick: Pick
                              ,Dump: Dump
                              ,route: route
-                             ,barrels: barrels
                              ,moonRad: moonRad
+                             ,tickTime: tickTime
+                             ,barrelExt: barrelExt
+                             ,wheelSize: wheelSize
+                             ,wheelRotSpeed: wheelRotSpeed
+                             ,shakeSpeed: shakeSpeed
+                             ,wheelOffsL: wheelOffsL
+                             ,wheelOffsR: wheelOffsR
+                             ,roverExt: roverExt
+                             ,moveSpeed: moveSpeed
+                             ,fuelConsumption: fuelConsumption
                              ,img: img
                              ,barrel: barrel
                              ,wheel: wheel
                              ,rover: rover
-                             ,lunarScene: lunarScene
+                             ,scene: scene
                              ,view: view
                              ,Tick: Tick
                              ,updates: updates
+                             ,updMove: updMove
+                             ,advance: advance
                              ,foldUpdates: foldUpdates
                              ,main: main};
 };
