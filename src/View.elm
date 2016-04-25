@@ -43,8 +43,10 @@ vehicle {pos, dir, fuel, spare} =
       wheelm = pos*dir
       shake = sin(pos*shakeSpeed)
   in [
-      barrel (-20, 23 + shake) (0, fuel)
-    , if spare >= 0 then barrel (26, 12 - shake) (0, spare) else group []
+      if spare >= 0 then
+        barrel (fst spareOffs, snd spareOffs - shake) (0, spare)
+      else group []
+    , barrel (fst tankOffs, snd tankOffs + shake) (0, fuel)
     , img "rover" w h |> toForm |>  moveY (moonRad + hoffs + shake)
     , wheel wheelOffsL (wheelm + 1.5)
     , wheel wheelOffsR (wheelm + 0.1)

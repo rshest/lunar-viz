@@ -18,6 +18,7 @@ type alias Rover =
   }
 
 
+--  initial rover state
 init : Rover
 init =
   { pos = 0
@@ -31,7 +32,7 @@ init =
 --  returns true if two numbers are "close enough"
 isClose : Float -> Float -> Bool
 isClose a b =
-  abs(a - b) < 0.0001
+  abs(a - b) < epsilon
 
 
 --  takes n units of fuel from the barrels
@@ -101,7 +102,7 @@ evalAction rover action =
       Dump   -> dump r
 
 
---  evaluates list of actions the initial state
+--  evaluates list of actions from the initial state
 evalActions : List Action -> Maybe Rover
 evalActions actions =
   List.foldl (\a r -> evalAction r a) (Just init) actions
