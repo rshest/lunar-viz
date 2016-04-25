@@ -6414,7 +6414,10 @@ Elm.Model.make = function (_elm) {
               ,dir: 1
               ,fuel: 1
               ,spare: 1
-              ,barrels: _U.list([])};
+              ,barrels: _U.list([{ctor: "_Tuple2",_0: 0.1,_1: 0.5}
+                                ,{ctor: "_Tuple2",_0: 0.9,_1: 0.25}
+                                ,{ctor: "_Tuple2",_0: 0.3,_1: 1}
+                                ,{ctor: "_Tuple2",_0: 0.7,_1: 0}])};
    var evalActions = function (actions) {
       return A3($List.foldl,
       F2(function (a,r) {    return A2(evalAction,r,a);}),
@@ -6499,44 +6502,50 @@ Elm.View.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Transform2D = Elm.Transform2D.make(_elm);
    var _op = {};
+   var moveRot = F3(function (offs,rot,f) {
+      return A2($Graphics$Collage.rotate,
+      rot,
+      $Graphics$Collage.group(_U.list([A2($Graphics$Collage.move,
+      offs,
+      f)])));
+   });
    var img = F3(function (name,w,h) {
       return A3($Graphics$Element.image,
       w,
       h,
       A2($Basics._op["++"],"img/",A2($Basics._op["++"],name,".png")));
    });
-   var barrel = F2(function (offs,_p0) {
-      var _p1 = _p0;
-      var _p2 = $Constants.barrelExt;
-      var w = _p2._0;
-      var h = _p2._1;
-      var lid = _p2._2;
-      var hf = (h - lid) * _p1._1;
-      var g = A2($Graphics$Collage.moveY,
-      $Constants.moonRad,
+   var barrel = F2(function (offs,fuel) {
+      var _p0 = $Constants.barrelExt;
+      var w = _p0._0;
+      var h = _p0._1;
+      var lid = _p0._2;
+      var hf = (h - lid) * fuel;
+      return A2($Graphics$Collage.move,
+      offs,
       $Graphics$Collage.group(_U.list([A2($Graphics$Collage.moveY,
                                       (hf - h) * 0.5 + 2,
                                       A2($Graphics$Collage.filled,
                                       $Color.orange,
                                       A2($Graphics$Collage.rect,w - 4,hf)))
                                       ,$Graphics$Collage.toForm(A3(img,"barrel",w,h))])));
-      return A2($Graphics$Collage.rotate,
-      _p1._0 * 2 * $Basics.pi,
-      A2($Graphics$Collage.move,
-      offs,
-      $Graphics$Collage.group(_U.list([g]))));
    });
+   var barrel_ground = function (_p1) {
+      var _p2 = _p1;
+      return A3(moveRot,
+      {ctor: "_Tuple2",_0: 0,_1: $Constants.moonRad},
+      _p2._0 * 2 * $Basics.pi,
+      A2(barrel,{ctor: "_Tuple2",_0: 0,_1: 0},_p2._1));
+   };
    var wheel = F2(function (offs,rot) {
-      return A2($Graphics$Collage.moveY,
-      $Constants.moonRad,
-      A2($Graphics$Collage.rotate,
+      return A2($Graphics$Collage.rotate,
       rot * $Constants.wheelRotSpeed,
       A2($Graphics$Collage.move,
       offs,
       $Graphics$Collage.toForm(A3(img,
       "wheel",
       $Constants.wheelSize,
-      $Constants.wheelSize)))));
+      $Constants.wheelSize))));
    });
    var vehicle = function (_p3) {
       var _p4 = _p3;
@@ -6549,7 +6558,8 @@ Elm.View.make = function (_elm) {
       var w = _p5._0;
       var h = _p5._1;
       var hoffs = _p5._2;
-      return A2($Graphics$Collage.rotate,
+      return A3(moveRot,
+      {ctor: "_Tuple2",_0: 0,_1: $Constants.moonRad},
       _p7 * 2 * $Basics.pi * _p6,
       A2($Graphics$Collage.groupTransform,
       $Transform2D.scaleX(_p6),
@@ -6557,16 +6567,14 @@ Elm.View.make = function (_elm) {
               {ctor: "_Tuple2"
               ,_0: $Basics.fst($Constants.spareOffs)
               ,_1: $Basics.snd($Constants.spareOffs) - shake},
-              {ctor: "_Tuple2"
-              ,_0: 0
-              ,_1: _p8}) : $Graphics$Collage.group(_U.list([]))
+              _p8) : $Graphics$Collage.group(_U.list([]))
               ,A2(barrel,
               {ctor: "_Tuple2"
               ,_0: $Basics.fst($Constants.tankOffs)
               ,_1: $Basics.snd($Constants.tankOffs) + shake},
-              {ctor: "_Tuple2",_0: 0,_1: _p4.fuel})
+              _p4.fuel)
               ,A2($Graphics$Collage.moveY,
-              $Constants.moonRad + hoffs + shake,
+              hoffs + shake,
               $Graphics$Collage.toForm(A3(img,"rover",w,h)))
               ,A2(wheel,$Constants.wheelOffsL,wheelm + 1.5)
               ,A2(wheel,$Constants.wheelOffsR,wheelm + 0.1)])));
@@ -6587,13 +6595,15 @@ Elm.View.make = function (_elm) {
       mh,
       _U.list([$Graphics$Collage.toForm(A3(img,"moon",mw,mh))
               ,$Graphics$Collage.group(A2($List.map,
-              barrel({ctor: "_Tuple2",_0: 0,_1: 0}),
+              barrel_ground,
               _p14.barrels))
               ,vehicle(_p14)])));
    });
    return _elm.View.values = {_op: _op
                              ,img: img
+                             ,moveRot: moveRot
                              ,barrel: barrel
+                             ,barrel_ground: barrel_ground
                              ,wheel: wheel
                              ,vehicle: vehicle
                              ,scene: scene};
