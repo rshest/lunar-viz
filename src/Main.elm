@@ -8,51 +8,30 @@ import Time exposing (..)
 
 import Model
 import View
-import Anim
+import Anim exposing (RoverAnim, advance)
 
 import Model exposing (..)
 import Constants exposing (..)
 
+port locationSearch : String
 
 type Update = Tick Float
 
-
+updates : Signal Update
 updates =
-  mergeMany
-  [ map Tick (Time.every (Time.second*tickTime)) ]
-
-updMove rover dt n =
-  let
-    dp = rover.dir*dt*moveAnimSpeed
-    fuel = rover.fuel - dp*fuelConsumption
-    pos = rover.pos - dp
-  in
-    {rover | pos = pos, fuel = max fuel 0}
+  mergeMany [ map Tick (Time.every (Time.second*tickTime)) ]
 
 
-advance (rover, step, t) dt =
-  let
-    action = Model.planRoute |> List.drop step |> List.head
-    newt = t + dt
-    newr =
-      case action of
-        Just (Move n) -> updMove rover dt n
-        Just (Load n) -> rover
-        Just (Fill n) -> rover
-        Just (Pick n) -> rover
-        Just (Dump) -> rover
-        _ -> rover
-  in (newr, step, t)
-
-
-foldUpdates update state =
+foldUpd : Update -> RoverAnim -> RoverAnim
+foldUpd update anim =
   case update of
-    Tick _ -> advance state tickTime
+    Tick _ ->
+      case Anim.advance anim tickTime of
+        Nothing -> anim
+        Just a -> a
 
-
-port locationSearch : String
-
+main : Signal Element
 main =
   map2 View.scene
-  (foldp foldUpdates (Model.init, 0, 1) updates)
+  (foldp foldUpd Anim.init updates)
   Window.dimensions

@@ -6278,27 +6278,6 @@ Elm.Window.make = function (_elm) {
                                ,width: width
                                ,height: height};
 };
-Elm.Utils = Elm.Utils || {};
-Elm.Utils.make = function (_elm) {
-   "use strict";
-   _elm.Utils = _elm.Utils || {};
-   if (_elm.Utils.values) return _elm.Utils.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var epsilon = 1.0e-4;
-   var isClose = F2(function (a,b) {
-      return _U.cmp($Basics.abs(a - b),epsilon) < 0;
-   });
-   return _elm.Utils.values = {_op: _op
-                              ,epsilon: epsilon
-                              ,isClose: isClose};
-};
 Elm.Constants = Elm.Constants || {};
 Elm.Constants.make = function (_elm) {
    "use strict";
@@ -6345,6 +6324,27 @@ Elm.Constants.make = function (_elm) {
                                   ,moveAnimSpeed: moveAnimSpeed
                                   ,loadAnimSpeed: loadAnimSpeed
                                   ,dumpAnimSpeed: dumpAnimSpeed};
+};
+Elm.Utils = Elm.Utils || {};
+Elm.Utils.make = function (_elm) {
+   "use strict";
+   _elm.Utils = _elm.Utils || {};
+   if (_elm.Utils.values) return _elm.Utils.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var epsilon = 1.0e-4;
+   var isClose = F2(function (a,b) {
+      return _U.cmp($Basics.abs(a - b),epsilon) < 0;
+   });
+   return _elm.Utils.values = {_op: _op
+                              ,epsilon: epsilon
+                              ,isClose: isClose};
 };
 Elm.Model = Elm.Model || {};
 Elm.Model.make = function (_elm) {
@@ -6544,14 +6544,33 @@ Elm.Anim.make = function (_elm) {
          case "Pick": return $Maybe.Just(A2(dumpInterp,anim,1 - t));
          default: return $Maybe.Just(A2(dumpInterp,anim,t));}
    });
+   var advance = F2(function (anim,dt) {
+      var action = $List.head(A2($List.drop,
+      anim.step,
+      $Model.planRoute));
+      return A2($Maybe.andThen,
+      action,
+      function (a) {
+         var t = anim.t + dt / duration(a);
+         return _U.cmp(t,1) > 0 ? A2(advance,
+         _U.update(anim,{step: anim.step + 1,t: t - 1}),
+         0) : A3(interp,anim,a,t);
+      });
+   });
+   var init = {rover: $Model.init
+              ,spareOffs: $Constants.spareOffs
+              ,step: 0
+              ,t: 0};
    var RoverAnim = F4(function (a,b,c,d) {
       return {rover: a,spareOffs: b,step: c,t: d};
    });
    return _elm.Anim.values = {_op: _op
                              ,RoverAnim: RoverAnim
+                             ,init: init
                              ,interp: interp
                              ,dumpInterp: dumpInterp
-                             ,duration: duration};
+                             ,duration: duration
+                             ,advance: advance};
 };
 Elm.View = Elm.View || {};
 Elm.View.make = function (_elm) {
@@ -6559,6 +6578,7 @@ Elm.View.make = function (_elm) {
    _elm.View = _elm.View || {};
    if (_elm.View.values) return _elm.View.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $Anim = Elm.Anim.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
    $Debug = Elm.Debug.make(_elm),
@@ -6650,7 +6670,7 @@ Elm.View.make = function (_elm) {
    var moonExt = {ctor: "_Tuple2",_0: 400,_1: 400};
    var scene = F2(function (_p10,_p9) {
       var _p11 = _p10;
-      var _p14 = _p11._0;
+      var _p14 = _p11.rover;
       var _p12 = _p9;
       var _p13 = moonExt;
       var mw = _p13._0;
@@ -6690,55 +6710,26 @@ Elm.Main.make = function (_elm) {
    _elm.Main = _elm.Main || {};
    if (_elm.Main.values) return _elm.Main.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $Anim = Elm.Anim.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Constants = Elm.Constants.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Model = Elm.Model.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm),
    $View = Elm.View.make(_elm),
    $Window = Elm.Window.make(_elm);
    var _op = {};
-   var locationSearch = Elm.Native.Port.make(_elm).inbound("locationSearch",
-   "String",
-   function (v) {
-      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
-      v);
-   });
-   var updMove = F3(function (rover,dt,n) {
-      var dp = rover.dir * dt * $Constants.moveAnimSpeed;
-      var fuel = rover.fuel - dp * $Constants.fuelConsumption;
-      var pos = rover.pos - dp;
-      return _U.update(rover,{pos: pos,fuel: A2($Basics.max,fuel,0)});
-   });
-   var advance = F2(function (_p0,dt) {
-      var _p1 = _p0;
-      var _p5 = _p1._2;
-      var _p4 = _p1._1;
-      var _p3 = _p1._0;
-      var newt = _p5 + dt;
-      var action = $List.head(A2($List.drop,_p4,$Model.planRoute));
-      var newr = function () {
-         var _p2 = action;
-         if (_p2.ctor === "Just") {
-               switch (_p2._0.ctor)
-               {case "Move": return A3(updMove,_p3,dt,_p2._0._0);
-                  case "Load": return _p3;
-                  case "Fill": return _p3;
-                  case "Pick": return _p3;
-                  default: return _p3;}
-            } else {
-               return _p3;
-            }
-      }();
-      return {ctor: "_Tuple3",_0: newr,_1: _p4,_2: _p5};
-   });
-   var foldUpdates = F2(function (update,state) {
-      var _p6 = update;
-      return A2(advance,state,$Constants.tickTime);
+   var foldUpd = F2(function (update,anim) {
+      var _p0 = update;
+      var _p1 = A2($Anim.advance,anim,$Constants.tickTime);
+      if (_p1.ctor === "Nothing") {
+            return anim;
+         } else {
+            return _p1._0;
+         }
    });
    var Tick = function (a) {    return {ctor: "Tick",_0: a};};
    var updates = $Signal.mergeMany(_U.list([A2($Signal.map,
@@ -6746,16 +6737,17 @@ Elm.Main.make = function (_elm) {
    $Time.every($Time.second * $Constants.tickTime))]));
    var main = A3($Signal.map2,
    $View.scene,
-   A3($Signal.foldp,
-   foldUpdates,
-   {ctor: "_Tuple3",_0: $Model.init,_1: 0,_2: 1},
-   updates),
+   A3($Signal.foldp,foldUpd,$Anim.init,updates),
    $Window.dimensions);
+   var locationSearch = Elm.Native.Port.make(_elm).inbound("locationSearch",
+   "String",
+   function (v) {
+      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
+      v);
+   });
    return _elm.Main.values = {_op: _op
                              ,Tick: Tick
                              ,updates: updates
-                             ,updMove: updMove
-                             ,advance: advance
-                             ,foldUpdates: foldUpdates
+                             ,foldUpd: foldUpd
                              ,main: main};
 };

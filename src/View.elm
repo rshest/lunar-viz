@@ -1,6 +1,7 @@
 module View where
 
 import Model exposing(Rover)
+import Anim exposing(RoverAnim)
 
 import Color exposing (..)
 import Transform2D exposing (..)
@@ -63,8 +64,8 @@ vehicle {pos, dir, fuel, spare} =
 
 
 -- full scene display
-scene : (Rover, Int, Float) -> (Int, Int) -> Element
-scene (rover, step, t) (w, h) =
+scene : RoverAnim -> (Int, Int) -> Element
+scene {rover} (w, h) =
   let (mw, mh) = moonExt in
   container w h midLeft
   (collage mw mh [

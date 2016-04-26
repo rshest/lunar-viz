@@ -1,6 +1,5 @@
 module Anim where
 
-import Utils
 import Constants exposing (..)
 import Model exposing (..)
 
@@ -9,6 +8,16 @@ type alias RoverAnim =
   , spareOffs : (Float, Float) -- spare barrel offset
   , step : Int -- current step in the plan
   , t : Float -- current animation factor [0, 1]
+  }
+
+
+--  initial animation state
+init : RoverAnim
+init =
+  { rover = Model.init
+  , spareOffs = spareOffs
+  , step = 0
+  , t = 0
   }
 
 
@@ -42,3 +51,17 @@ duration action =
     Fill n -> n*loadAnimSpeed
     Pick n -> dumpAnimSpeed
     Dump   -> dumpAnimSpeed
+
+
+-- advances scene animation according to time delta
+advance : RoverAnim -> Float -> Maybe RoverAnim
+advance anim dt =
+  let
+    action = Model.planRoute |> List.drop anim.step |> List.head
+  in
+    action `Maybe.andThen` \a->
+      let t = anim.t + dt/(duration a) in
+      if t > 1 then
+        advance {anim | step = anim.step + 1, t = t - 1} 0
+      else
+        interp anim a t
