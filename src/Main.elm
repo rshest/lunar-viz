@@ -1,19 +1,17 @@
 module Main where
 
 import Window
+import Graphics.Element exposing (..)
 import Signal exposing (..)
 
-import List
 import Time exposing (..)
 
-import Model
 import View
 import Anim exposing (RoverAnim, advance)
 
-import Model exposing (..)
 import Constants exposing (..)
 
-port locationSearch : String
+--port locationSearch : String
 
 type Update = Tick Float
 

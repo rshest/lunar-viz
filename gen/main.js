@@ -6293,7 +6293,7 @@ Elm.Constants.make = function (_elm) {
    var _op = {};
    var dumpAnimSpeed = 0.1;
    var loadAnimSpeed = 0.1;
-   var moveAnimSpeed = 0.1;
+   var moveAnimSpeed = 10;
    var tickTime = 2.0e-2;
    var spareOffs = {ctor: "_Tuple2",_0: 26,_1: 12};
    var tankOffs = {ctor: "_Tuple2",_0: -20,_1: 23};
@@ -6435,10 +6435,7 @@ Elm.Model.make = function (_elm) {
               ,dir: 1
               ,fuel: 1
               ,spare: 1
-              ,barrels: _U.list([{ctor: "_Tuple2",_0: 0.1,_1: 0.5}
-                                ,{ctor: "_Tuple2",_0: 0.9,_1: 0.25}
-                                ,{ctor: "_Tuple2",_0: 0.3,_1: 1}
-                                ,{ctor: "_Tuple2",_0: 0.7,_1: 0}])};
+              ,barrels: _U.list([])};
    var evalActions = function (actions) {
       return A3($List.foldl,
       F2(function (a,r) {    return A2(evalAction,r,a);}),
@@ -6453,37 +6450,34 @@ Elm.Model.make = function (_elm) {
    var Fill = function (a) {    return {ctor: "Fill",_0: a};};
    var Load = function (a) {    return {ctor: "Load",_0: a};};
    var Move = function (a) {    return {ctor: "Move",_0: a};};
-   var planRoute = _U.list([Move(20)
-                           ,Load(100)
-                           ,Pick(100)
-                           ,Move(-10)
+   var planRoute = _U.list([Move(-0.1)
                            ,Dump
-                           ,Move(10)
-                           ,Load(100)
-                           ,Pick(100)
-                           ,Move(10)
+                           ,Move(0.1)
+                           ,Load(1)
+                           ,Pick(1)
+                           ,Move(0.1)
                            ,Dump
-                           ,Move(-10)
-                           ,Load(100)
-                           ,Pick(100)
-                           ,Move(-10)
-                           ,Load(50)
-                           ,Move(-10)
+                           ,Move(-0.1)
+                           ,Load(1)
+                           ,Pick(1)
+                           ,Move(-0.1)
+                           ,Load(0.5)
+                           ,Move(-0.1)
                            ,Dump
-                           ,Move(10)
-                           ,Load(50)
-                           ,Move(10)
-                           ,Load(100)
-                           ,Pick(100)
-                           ,Move(10)
-                           ,Load(50)
-                           ,Move(10)
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
+                           ,Load(1)
+                           ,Pick(1)
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
                            ,Dump
-                           ,Move(-10)
-                           ,Load(50)
-                           ,Move(-10)
-                           ,Load(100)
-                           ,Pick(100)
+                           ,Move(-0.1)
+                           ,Load(0.5)
+                           ,Move(-0.1)
+                           ,Load(1)
+                           ,Pick(1)
                            ,Move(10000000)]);
    return _elm.Model.values = {_op: _op
                               ,Move: Move
@@ -6521,7 +6515,8 @@ Elm.Anim.make = function (_elm) {
    var duration = function (action) {
       var _p0 = action;
       switch (_p0.ctor)
-      {case "Move": return _p0._0 * $Constants.moveAnimSpeed;
+      {case "Move":
+         return $Basics.abs(_p0._0) * $Constants.moveAnimSpeed;
          case "Load": return _p0._0 * $Constants.loadAnimSpeed;
          case "Fill": return _p0._0 * $Constants.loadAnimSpeed;
          case "Pick": return $Constants.dumpAnimSpeed;
@@ -6538,9 +6533,9 @@ Elm.Anim.make = function (_elm) {
       };
       var _p1 = action;
       switch (_p1.ctor)
-      {case "Move": return interpEval($Model.Move(t));
-         case "Load": return interpEval($Model.Load(t));
-         case "Fill": return interpEval($Model.Fill(t));
+      {case "Move": return interpEval($Model.Move(t * _p1._0));
+         case "Load": return interpEval($Model.Load(t * _p1._0));
+         case "Fill": return interpEval($Model.Fill(t * _p1._0));
          case "Pick": return $Maybe.Just(A2(dumpInterp,anim,1 - t));
          default: return $Maybe.Just(A2(dumpInterp,anim,t));}
    });
@@ -6551,10 +6546,11 @@ Elm.Anim.make = function (_elm) {
       return A2($Maybe.andThen,
       action,
       function (a) {
-         var t = anim.t + dt / duration(a);
-         return _U.cmp(t,1) > 0 ? A2(advance,
+         var t = anim.t + dt;
+         return _U.cmp(A2($Debug.watch,"t",t),
+         duration(a)) > -1 ? A2(advance,
          _U.update(anim,{step: anim.step + 1,t: t - 1}),
-         0) : A3(interp,anim,a,t);
+         0) : A3(interp,_U.update(anim,{t: t}),a,t / duration(a));
       });
    });
    var init = {rover: $Model.init
@@ -6581,6 +6577,7 @@ Elm.View.make = function (_elm) {
    $Anim = Elm.Anim.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
+   $Constants = Elm.Constants.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
@@ -6591,88 +6588,88 @@ Elm.View.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Transform2D = Elm.Transform2D.make(_elm);
    var _op = {};
+   var moveRot = F3(function (offs,rot,f) {
+      return A2($Graphics$Collage.rotate,
+      rot,
+      $Graphics$Collage.group(_U.list([A2($Graphics$Collage.move,
+      offs,
+      f)])));
+   });
    var img = F3(function (name,w,h) {
       return A3($Graphics$Element.image,
       w,
       h,
       A2($Basics._op["++"],"img/",A2($Basics._op["++"],name,".png")));
    });
-   var wheelOffsR = {ctor: "_Tuple2",_0: 10,_1: -5};
-   var wheelOffsL = {ctor: "_Tuple2",_0: -20,_1: -7};
-   var shakeSpeed = 250;
-   var wheelRotSpeed = 80;
-   var wheelSize = 17;
-   var roverExt = {ctor: "_Tuple3",_0: 66,_1: 52,_2: 20};
-   var barrelExt = {ctor: "_Tuple3",_0: 20,_1: 29,_2: 9};
-   var moonRad = 155;
-   var barrel = F2(function (offs,_p0) {
-      var _p1 = _p0;
-      var _p2 = barrelExt;
-      var w = _p2._0;
-      var h = _p2._1;
-      var lid = _p2._2;
-      var hf = (h - lid) * _p1._1;
-      var g = A2($Graphics$Collage.moveY,
-      moonRad,
+   var barrel = F2(function (offs,fuel) {
+      var _p0 = $Constants.barrelExt;
+      var w = _p0._0;
+      var h = _p0._1;
+      var lid = _p0._2;
+      var hf = (h - lid) * fuel;
+      return A2($Graphics$Collage.move,
+      offs,
       $Graphics$Collage.group(_U.list([A2($Graphics$Collage.moveY,
                                       (hf - h) * 0.5 + 2,
                                       A2($Graphics$Collage.filled,
                                       $Color.orange,
                                       A2($Graphics$Collage.rect,w - 4,hf)))
                                       ,$Graphics$Collage.toForm(A3(img,"barrel",w,h))])));
-      return A2($Graphics$Collage.rotate,
-      _p1._0 * 2 * $Basics.pi,
-      A2($Graphics$Collage.move,
-      offs,
-      $Graphics$Collage.group(_U.list([g]))));
    });
+   var barrel_ground = function (_p1) {
+      var _p2 = _p1;
+      return A3(moveRot,
+      {ctor: "_Tuple2",_0: 0,_1: $Constants.moonRad},
+      _p2._0 * 2 * $Basics.pi,
+      A2(barrel,{ctor: "_Tuple2",_0: 0,_1: 0},_p2._1));
+   };
    var wheel = F2(function (offs,rot) {
-      return A2($Graphics$Collage.moveY,
-      moonRad,
-      A2($Graphics$Collage.rotate,
-      rot * wheelRotSpeed,
+      return A2($Graphics$Collage.rotate,
+      rot * $Constants.wheelRotSpeed,
       A2($Graphics$Collage.move,
       offs,
       $Graphics$Collage.toForm(A3(img,
       "wheel",
-      wheelSize,
-      wheelSize)))));
+      $Constants.wheelSize,
+      $Constants.wheelSize))));
    });
    var vehicle = function (_p3) {
       var _p4 = _p3;
       var _p8 = _p4.spare;
       var _p7 = _p4.pos;
       var _p6 = _p4.dir;
-      var shake = $Basics.sin(_p7 * shakeSpeed);
+      var shake = $Basics.sin(_p7 * $Constants.shakeSpeed);
       var wheelm = _p7 * _p6;
-      var _p5 = roverExt;
+      var _p5 = $Constants.roverExt;
       var w = _p5._0;
       var h = _p5._1;
       var hoffs = _p5._2;
-      return A2($Graphics$Collage.rotate,
+      return A3(moveRot,
+      {ctor: "_Tuple2",_0: 0,_1: $Constants.moonRad},
       _p7 * 2 * $Basics.pi * _p6,
       A2($Graphics$Collage.groupTransform,
       $Transform2D.scaleX(_p6),
-      _U.list([A2(barrel,
-              {ctor: "_Tuple2",_0: -20,_1: 23 + shake},
-              {ctor: "_Tuple2",_0: 0,_1: _p4.fuel})
-              ,_U.cmp(_p8,0) > -1 ? A2(barrel,
-              {ctor: "_Tuple2",_0: 26,_1: 12 - shake},
+      _U.list([_U.cmp(_p8,0) > -1 ? A2(barrel,
               {ctor: "_Tuple2"
-              ,_0: 0
-              ,_1: _p8}) : $Graphics$Collage.group(_U.list([]))
+              ,_0: $Basics.fst($Constants.spareOffs)
+              ,_1: $Basics.snd($Constants.spareOffs) - shake},
+              _p8) : $Graphics$Collage.group(_U.list([]))
+              ,A2(barrel,
+              {ctor: "_Tuple2"
+              ,_0: $Basics.fst($Constants.tankOffs)
+              ,_1: $Basics.snd($Constants.tankOffs) + shake},
+              _p4.fuel)
               ,A2($Graphics$Collage.moveY,
-              moonRad + hoffs + shake,
+              hoffs + shake,
               $Graphics$Collage.toForm(A3(img,"rover",w,h)))
-              ,A2(wheel,wheelOffsL,wheelm + 1.5)
-              ,A2(wheel,wheelOffsR,wheelm + 0.1)])));
+              ,A2(wheel,$Constants.wheelOffsL,wheelm + 1.5)
+              ,A2(wheel,$Constants.wheelOffsR,wheelm + 0.1)])));
    };
-   var moonExt = {ctor: "_Tuple2",_0: 400,_1: 400};
    var scene = F2(function (_p10,_p9) {
       var _p11 = _p10;
       var _p14 = _p11.rover;
       var _p12 = _p9;
-      var _p13 = moonExt;
+      var _p13 = $Constants.moonExt;
       var mw = _p13._0;
       var mh = _p13._1;
       return A4($Graphics$Element.container,
@@ -6684,22 +6681,15 @@ Elm.View.make = function (_elm) {
       mh,
       _U.list([$Graphics$Collage.toForm(A3(img,"moon",mw,mh))
               ,$Graphics$Collage.group(A2($List.map,
-              barrel({ctor: "_Tuple2",_0: 0,_1: 0}),
+              barrel_ground,
               _p14.barrels))
               ,vehicle(_p14)])));
    });
    return _elm.View.values = {_op: _op
-                             ,moonExt: moonExt
-                             ,moonRad: moonRad
-                             ,barrelExt: barrelExt
-                             ,roverExt: roverExt
-                             ,wheelSize: wheelSize
-                             ,wheelRotSpeed: wheelRotSpeed
-                             ,shakeSpeed: shakeSpeed
-                             ,wheelOffsL: wheelOffsL
-                             ,wheelOffsR: wheelOffsR
                              ,img: img
+                             ,moveRot: moveRot
                              ,barrel: barrel
+                             ,barrel_ground: barrel_ground
                              ,wheel: wheel
                              ,vehicle: vehicle
                              ,scene: scene};
@@ -6714,6 +6704,7 @@ Elm.Main.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Constants = Elm.Constants.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -6739,12 +6730,6 @@ Elm.Main.make = function (_elm) {
    $View.scene,
    A3($Signal.foldp,foldUpd,$Anim.init,updates),
    $Window.dimensions);
-   var locationSearch = Elm.Native.Port.make(_elm).inbound("locationSearch",
-   "String",
-   function (v) {
-      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
-      v);
-   });
    return _elm.Main.values = {_op: _op
                              ,Tick: Tick
                              ,updates: updates

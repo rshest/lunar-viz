@@ -29,9 +29,9 @@ interp anim action t =
           `Maybe.andThen` \r -> Just {anim | rover = r}
   in
     case action of
-      Move n -> interpEval (Move t)
-      Load n -> interpEval (Load t)
-      Fill n -> interpEval (Fill t)
+      Move n -> interpEval (Move (t*n))
+      Load n -> interpEval (Load (t*n))
+      Fill n -> interpEval (Fill (t*n))
       Pick n -> Just (dumpInterp anim (1 - t))
       Dump -> Just (dumpInterp anim t)
 
@@ -46,7 +46,7 @@ dumpInterp anim t =
 duration : Action -> Float
 duration action =
   case action of
-    Move n -> n*moveAnimSpeed
+    Move n -> abs(n)*moveAnimSpeed
     Load n -> n*loadAnimSpeed
     Fill n -> n*loadAnimSpeed
     Pick n -> dumpAnimSpeed
@@ -60,8 +60,8 @@ advance anim dt =
     action = Model.planRoute |> List.drop anim.step |> List.head
   in
     action `Maybe.andThen` \a->
-      let t = anim.t + dt/(duration a) in
-      if t > 1 then
+      let t = anim.t + dt in
+      if (Debug.watch "t" t) >= (duration a) then
         advance {anim | step = anim.step + 1, t = t - 1} 0
       else
-        interp anim a t
+        interp {anim | t = t} a (t/(duration a))

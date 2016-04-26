@@ -20,6 +20,6 @@ spareOffs = (26, 12)
 --  anim
 tickTime = 0.02
 
-moveAnimSpeed = 0.1
+moveAnimSpeed = 1
 loadAnimSpeed = 0.1
 dumpAnimSpeed = 0.1

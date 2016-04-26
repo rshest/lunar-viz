@@ -27,7 +27,7 @@ init =
   , dir = 1
   , fuel = 1
   , spare = 1
-  , barrels = [(0.1, 0.5), (0.9, 0.25), (0.3, 1), (0.7, 0)]
+  , barrels = []
   }
 
 
@@ -106,9 +106,9 @@ evalActions actions =
 
 --  plans a route according to the problem
 planRoute : List Action
-planRoute = [Move 20,
-  Load 100, Pick 100, Move -10, Dump, Move 10,
-  Load 100, Pick 100, Move 10, Dump, Move -10,
-  Load 100, Pick 100, Move -10, Load 50, Move -10, Dump, Move 10, Load 50, Move 10,
-  Load 100, Pick 100, Move 10, Load 50, Move 10, Dump, Move -10, Load 50, Move -10,
-  Load 100, Pick 100, Move 10000000]
+planRoute = [
+  Move -0.1, Dump, Move 0.1,
+  Load 1, Pick 1, Move 0.1, Dump, Move -0.1,
+  Load 1, Pick 1, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1,
+  Load 1, Pick 1, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1,
+  Load 1, Pick 1, Move 10000000]
