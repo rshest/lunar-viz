@@ -1,9 +1,10 @@
-import Graphics.Element exposing (Element)
+import Graphics.Element exposing (..)
 
 import ElmTest exposing (elementRunner)
 
 import Tests
 
 main : Element
-main =
-    elementRunner Tests.tests
+main = flow down
+  [ elementRunner Tests.model
+  , elementRunner Tests.utils]

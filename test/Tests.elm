@@ -1,10 +1,11 @@
 module Tests where
 import ElmTest exposing (..)
 
+import Utils exposing (..)
 import Model exposing (..)
 
-tests : Test
-tests = suite "Model Eval"
+model : Test
+model = suite "Model Eval"
   [
   test "Can't move"
     (let r = Model.evalActions [Move 0.1, Move -0.2] in
@@ -69,5 +70,13 @@ tests = suite "Model Eval"
   test "Can't load - no fuel"
     (let r = Model.evalActions [Move 0.1, Dump, Load 0.5, Move 0.1, Move -0.1, Load 1] in
       assertEqual (Nothing) (r))
+  ]
 
+
+utils : Test
+utils = suite "Utils"
+  [
+  test "Parabola 3 points"
+    (let (a, b, c) = parabola3pt (0, -3) (1, 0) (2, 7) in
+      assert (isClose a  2 && isClose b 1 && isClose c -3))
   ]

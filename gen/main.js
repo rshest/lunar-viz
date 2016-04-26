@@ -6338,13 +6338,30 @@ Elm.Utils.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var parabola3pt = F3(function (_p2,_p1,_p0) {
+      var _p3 = _p2;
+      var _p11 = _p3._1;
+      var _p10 = _p3._0;
+      var _p4 = _p1;
+      var _p9 = _p4._1;
+      var _p8 = _p4._0;
+      var _p5 = _p0;
+      var _p7 = _p5._1;
+      var _p6 = _p5._0;
+      var d = (_p10 - _p8) * (_p10 - _p6) * (_p8 - _p6);
+      var a = (_p6 * (_p9 - _p11) + _p8 * (_p11 - _p7) + _p10 * (_p7 - _p9)) / d;
+      var b = (_p6 * _p6 * (_p11 - _p9) + _p8 * _p8 * (_p7 - _p11) + _p10 * _p10 * (_p9 - _p7)) / d;
+      var c = (_p8 * _p6 * (_p8 - _p6) * _p11 + _p6 * _p10 * (_p6 - _p10) * _p9 + _p10 * _p8 * (_p10 - _p8) * _p7) / d;
+      return {ctor: "_Tuple3",_0: a,_1: b,_2: c};
+   });
    var epsilon = 1.0e-4;
    var isClose = F2(function (a,b) {
       return _U.cmp($Basics.abs(a - b),epsilon) < 0;
    });
    return _elm.Utils.values = {_op: _op
                               ,epsilon: epsilon
-                              ,isClose: isClose};
+                              ,isClose: isClose
+                              ,parabola3pt: parabola3pt};
 };
 Elm.Model = Elm.Model || {};
 Elm.Model.make = function (_elm) {
