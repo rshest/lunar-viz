@@ -6291,8 +6291,8 @@ Elm.Constants.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var dumpAnimSpeed = 0.1;
-   var loadAnimSpeed = 0.1;
+   var dumpAnimSpeed = 1;
+   var loadAnimSpeed = 1;
    var moveAnimSpeed = 10;
    var tickTime = 2.0e-2;
    var spareOffs = {ctor: "_Tuple2",_0: 26,_1: 12};
@@ -6523,46 +6523,79 @@ Elm.Anim.make = function (_elm) {
          default: return $Constants.dumpAnimSpeed;}
    };
    var dumpInterp = F2(function (anim,t) {    return anim;});
-   var interp = F3(function (anim,action,t) {
+   var curAction = function (anim) {
+      return $List.head(A2($List.drop,anim.step,anim.route));
+   };
+   var interp = function (anim) {
       var interpEval = function (a) {
-         return A2($Maybe.andThen,
-         A2($Model.evalAction,$Maybe.Just(anim.rover),a),
-         function (r) {
-            return $Maybe.Just(_U.update(anim,{rover: r}));
-         });
+         var _p1 = A2($Model.evalAction,$Maybe.Just(anim.rover),a);
+         if (_p1.ctor === "Nothing") {
+               return anim;
+            } else {
+               return _U.update(anim,{rover: _p1._0});
+            }
       };
-      var _p1 = action;
-      switch (_p1.ctor)
-      {case "Move": return interpEval($Model.Move(t * _p1._0));
-         case "Load": return interpEval($Model.Load(t * _p1._0));
-         case "Fill": return interpEval($Model.Fill(t * _p1._0));
-         case "Pick": return $Maybe.Just(A2(dumpInterp,anim,1 - t));
-         default: return $Maybe.Just(A2(dumpInterp,anim,t));}
+      var _p2 = curAction(anim);
+      if (_p2.ctor === "Just") {
+            switch (_p2._0.ctor)
+            {case "Move":
+               return interpEval($Model.Move(anim.t * _p2._0._0));
+               case "Load": return interpEval($Model.Load(anim.t * _p2._0._0));
+               case "Fill": return interpEval($Model.Fill(anim.t * _p2._0._0));
+               case "Pick": return A2(dumpInterp,anim,1 - anim.t);
+               default: return A2(dumpInterp,anim,anim.t);}
+         } else {
+            return anim;
+         }
+   };
+   var RoverAnim = F6(function (a,b,c,d,e,f) {
+      return {rover: a
+             ,spareOffs: b
+             ,step: c
+             ,t: d
+             ,status: e
+             ,route: f};
    });
+   var Done = {ctor: "Done"};
+   var Stuck = {ctor: "Stuck"};
    var advance = F2(function (anim,dt) {
-      var action = $List.head(A2($List.drop,
-      anim.step,
-      $Model.planRoute));
-      return A2($Maybe.andThen,
-      action,
-      function (a) {
-         var t = anim.t + dt;
-         return _U.cmp(A2($Debug.watch,"t",t),
-         duration(a)) > -1 ? A2(advance,
-         _U.update(anim,{step: anim.step + 1,t: t - 1}),
-         0) : A3(interp,_U.update(anim,{t: t}),a,t / duration(a));
-      });
+      advance: while (true) {
+         var _p3 = curAction(anim);
+         if (_p3.ctor === "Nothing") {
+               return _U.update(anim,{status: Done});
+            } else {
+               var _p5 = _p3._0;
+               var t = anim.t + dt / duration(_p5);
+               if (_U.cmp(t,1) < 0) return _U.update(anim,{t: t}); else {
+                     var _p4 = A2($Model.evalAction,$Maybe.Just(anim.rover),_p5);
+                     if (_p4.ctor === "Nothing") {
+                           return _U.update(anim,{status: Stuck});
+                        } else {
+                           var _v5 = _U.update(anim,
+                           {step: anim.step + 1,t: t - 1,rover: _p4._0}),
+                           _v6 = 0;
+                           anim = _v5;
+                           dt = _v6;
+                           continue advance;
+                        }
+                  }
+            }
+      }
    });
+   var InProgress = {ctor: "InProgress"};
    var init = {rover: $Model.init
               ,spareOffs: $Constants.spareOffs
               ,step: 0
-              ,t: 0};
-   var RoverAnim = F4(function (a,b,c,d) {
-      return {rover: a,spareOffs: b,step: c,t: d};
-   });
+              ,t: 0
+              ,status: InProgress
+              ,route: $Model.planRoute};
    return _elm.Anim.values = {_op: _op
+                             ,InProgress: InProgress
+                             ,Stuck: Stuck
+                             ,Done: Done
                              ,RoverAnim: RoverAnim
                              ,init: init
+                             ,curAction: curAction
                              ,interp: interp
                              ,dumpInterp: dumpInterp
                              ,duration: duration
@@ -6638,7 +6671,9 @@ Elm.View.make = function (_elm) {
       var _p8 = _p4.spare;
       var _p7 = _p4.pos;
       var _p6 = _p4.dir;
-      var shake = $Basics.sin(_p7 * $Constants.shakeSpeed);
+      var shake = $Basics.sin(A2($Debug.watch,
+      "pos",
+      _p7) * $Constants.shakeSpeed);
       var wheelm = _p7 * _p6;
       var _p5 = $Constants.roverExt;
       var w = _p5._0;
@@ -6646,9 +6681,9 @@ Elm.View.make = function (_elm) {
       var hoffs = _p5._2;
       return A3(moveRot,
       {ctor: "_Tuple2",_0: 0,_1: $Constants.moonRad},
-      _p7 * 2 * $Basics.pi * _p6,
+      _p7 * 2 * $Basics.pi,
       A2($Graphics$Collage.groupTransform,
-      $Transform2D.scaleX(_p6),
+      $Transform2D.scaleX(0 - _p6),
       _U.list([_U.cmp(_p8,0) > -1 ? A2(barrel,
               {ctor: "_Tuple2"
               ,_0: $Basics.fst($Constants.spareOffs)
@@ -6665,16 +6700,16 @@ Elm.View.make = function (_elm) {
               ,A2(wheel,$Constants.wheelOffsL,wheelm + 1.5)
               ,A2(wheel,$Constants.wheelOffsR,wheelm + 0.1)])));
    };
-   var scene = F2(function (_p10,_p9) {
-      var _p11 = _p10;
-      var _p14 = _p11.rover;
-      var _p12 = _p9;
-      var _p13 = $Constants.moonExt;
-      var mw = _p13._0;
-      var mh = _p13._1;
+   var scene = F2(function (anim,_p9) {
+      var _p10 = _p9;
+      var _p11 = $Anim.interp(anim);
+      var rover = _p11.rover;
+      var _p12 = $Constants.moonExt;
+      var mw = _p12._0;
+      var mh = _p12._1;
       return A4($Graphics$Element.container,
-      _p12._0,
-      _p12._1,
+      _p10._0,
+      _p10._1,
       $Graphics$Element.midLeft,
       A3($Graphics$Collage.collage,
       mw,
@@ -6682,8 +6717,8 @@ Elm.View.make = function (_elm) {
       _U.list([$Graphics$Collage.toForm(A3(img,"moon",mw,mh))
               ,$Graphics$Collage.group(A2($List.map,
               barrel_ground,
-              _p14.barrels))
-              ,vehicle(_p14)])));
+              rover.barrels))
+              ,vehicle(rover)])));
    });
    return _elm.View.values = {_op: _op
                              ,img: img
@@ -6715,12 +6750,7 @@ Elm.Main.make = function (_elm) {
    var _op = {};
    var foldUpd = F2(function (update,anim) {
       var _p0 = update;
-      var _p1 = A2($Anim.advance,anim,$Constants.tickTime);
-      if (_p1.ctor === "Nothing") {
-            return anim;
-         } else {
-            return _p1._0;
-         }
+      return A2($Anim.advance,anim,$Constants.tickTime);
    });
    var Tick = function (a) {    return {ctor: "Tick",_0: a};};
    var updates = $Signal.mergeMany(_U.list([A2($Signal.map,

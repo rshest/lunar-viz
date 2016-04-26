@@ -3,11 +3,20 @@ module Anim where
 import Constants exposing (..)
 import Model exposing (..)
 
+
+type Status =
+    InProgress
+  | Stuck
+  | Done
+
+
 type alias RoverAnim =
   { rover : Rover -- rover state
   , spareOffs : (Float, Float) -- spare barrel offset
   , step : Int -- current step in the plan
   , t : Float -- current animation factor [0, 1]
+  , status : Status -- current animation status
+  , route : List Action -- list of actions to perform
   }
 
 
@@ -18,23 +27,34 @@ init =
   , spareOffs = spareOffs
   , step = 0
   , t = 0
+  , status = InProgress
+  , route = Model.planRoute
   }
 
 
--- interpolates rover state according to action and factor t [0, 1]
-interp : RoverAnim -> Action -> Float -> Maybe RoverAnim
-interp anim action t =
-  let interpEval =
-    \a -> evalAction (Just anim.rover) a
-          `Maybe.andThen` \r -> Just {anim | rover = r}
-  in
-    case action of
-      Move n -> interpEval (Move (t*n))
-      Load n -> interpEval (Load (t*n))
-      Fill n -> interpEval (Fill (t*n))
-      Pick n -> Just (dumpInterp anim (1 - t))
-      Dump -> Just (dumpInterp anim t)
+--  returns current action for the animation
+curAction : RoverAnim -> Maybe Action
+curAction anim =
+  anim.route |> List.drop anim.step |> List.head
 
+
+
+-- interpolates rover state according to action and factor t [0, 1]
+interp : RoverAnim -> RoverAnim
+interp anim  =
+  let interpEval =
+    \a ->
+      case Model.evalAction (Just anim.rover) a of
+        Nothing -> anim
+        Just rover -> {anim | rover = rover}
+  in
+    case curAction anim of
+      Just (Move n) -> interpEval (Move (anim.t*n))
+      Just (Load n) -> interpEval (Load (anim.t*n))
+      Just (Fill n) -> interpEval (Fill (anim.t*n))
+      Just (Pick n) -> dumpInterp anim (1 - anim.t)
+      Just (Dump) -> dumpInterp anim anim.t
+      Nothing -> anim
 
 -- interpolates dump animation (pick is reverse)
 dumpInterp : RoverAnim -> Float -> RoverAnim
@@ -53,15 +73,17 @@ duration action =
     Dump   -> dumpAnimSpeed
 
 
--- advances scene animation according to time delta
-advance : RoverAnim -> Float -> Maybe RoverAnim
+-- advances scene animation according to the time delta
+advance : RoverAnim -> Float -> RoverAnim
 advance anim dt =
-  let
-    action = Model.planRoute |> List.drop anim.step |> List.head
-  in
-    action `Maybe.andThen` \a->
-      let t = anim.t + dt in
-      if (Debug.watch "t" t) >= (duration a) then
-        advance {anim | step = anim.step + 1, t = t - 1} 0
-      else
-        interp {anim | t = t} a (t/(duration a))
+  case curAction anim of
+    Nothing -> {anim | status = Done}
+    Just action ->
+      let t = anim.t + dt/(duration action) in
+        if t < 1 then
+          {anim | t = t}
+        else
+          case Model.evalAction (Just anim.rover) action of
+            Nothing -> {anim | status = Stuck}
+            Just rover -> advance {anim | step = anim.step + 1,
+              t = t - 1, rover = rover} 0

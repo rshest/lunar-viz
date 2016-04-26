@@ -50,7 +50,7 @@ vehicle : Rover -> Form
 vehicle {pos, dir, fuel, spare} =
   let (w, h, hoffs) = roverExt
       wheelm = pos*dir
-      shake = sin(pos*shakeSpeed)
+      shake = sin((Debug.watch "pos" pos)*shakeSpeed)
   in [
       if spare >= 0 then
         barrel (fst spareOffs, snd spareOffs - shake) spare
@@ -59,13 +59,15 @@ vehicle {pos, dir, fuel, spare} =
     , img "rover" w h |> toForm |>  moveY (hoffs + shake)
     , wheel wheelOffsL (wheelm + 1.5)
     , wheel wheelOffsR (wheelm + 0.1)
-    ] |> groupTransform (scaleX dir) |> moveRot (0, moonRad) (pos*2*pi*dir)
+    ] |> groupTransform (scaleX -dir) |> moveRot (0, moonRad) (pos*2*pi)
 
 
 -- full scene display
 scene : RoverAnim -> (Int, Int) -> Element
-scene {rover} (w, h) =
-  let (mw, mh) = moonExt in
+scene anim (w, h) =
+  let (mw, mh) = moonExt
+      {rover} = Anim.interp anim
+  in
   container w h midLeft
   (collage mw mh [
       img "moon" mw mh |> toForm

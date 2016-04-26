@@ -24,9 +24,7 @@ foldUpd : Update -> RoverAnim -> RoverAnim
 foldUpd update anim =
   case update of
     Tick _ ->
-      case Anim.advance anim tickTime of
-        Nothing -> anim
-        Just a -> a
+      Anim.advance anim tickTime 
 
 main : Signal Element
 main =
