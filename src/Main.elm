@@ -8,6 +8,7 @@ import Time exposing (..)
 
 import Model
 import View
+import Anim
 
 import Model exposing (..)
 import Constants exposing (..)
@@ -22,7 +23,7 @@ updates =
 
 updMove rover dt n =
   let
-    dp = rover.dir*dt*moveSpeed
+    dp = rover.dir*dt*moveAnimSpeed
     fuel = rover.fuel - dp*fuelConsumption
     pos = rover.pos - dp
   in
@@ -48,6 +49,8 @@ foldUpdates update state =
   case update of
     Tick _ -> advance state tickTime
 
+
+port locationSearch : String
 
 main =
   map2 View.scene

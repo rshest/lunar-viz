@@ -1,4 +1,6 @@
 module Model where
+
+import Utils
 import Constants exposing (..)
 
 type Action =
@@ -29,21 +31,15 @@ init =
   }
 
 
---  returns true if two numbers are "close enough"
-isClose : Float -> Float -> Bool
-isClose a b =
-  abs(a - b) < epsilon
-
-
 --  takes n units of fuel from the barrels
 takeFuelAt : Float -> Float -> List (Float, Float) -> Maybe (List (Float, Float))
 takeFuelAt pos fuel barrels =
   case barrels of
     (bpos, bfuel)::bs ->
-      if isClose pos bpos && bfuel >= fuel then
+      if Utils.isClose pos bpos && bfuel >= fuel then
         Just ((bpos, bfuel - fuel)::bs)
       else takeFuelAt pos fuel bs `Maybe.andThen` \b -> Just ((bpos, bfuel)::b)
-    _ -> if isClose pos 0 then (Just barrels) else Nothing
+    _ -> if Utils.isClose pos 0 then (Just barrels) else Nothing
 
 
 --  moves rover n units (can be negative, to move left)
@@ -78,7 +74,7 @@ fill n rover =
 -- pick a spare tank with n units of fuel
 pick : Float -> Rover -> Maybe Rover
 pick n rover =
-  if isClose 0 rover.pos && rover.spare < 0 then Just {rover | spare = n }
+  if Utils.isClose 0 rover.pos && rover.spare < 0 then Just {rover | spare = n }
   else Nothing
 
 

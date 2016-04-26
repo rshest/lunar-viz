@@ -6278,6 +6278,27 @@ Elm.Window.make = function (_elm) {
                                ,width: width
                                ,height: height};
 };
+Elm.Utils = Elm.Utils || {};
+Elm.Utils.make = function (_elm) {
+   "use strict";
+   _elm.Utils = _elm.Utils || {};
+   if (_elm.Utils.values) return _elm.Utils.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var epsilon = 1.0e-4;
+   var isClose = F2(function (a,b) {
+      return _U.cmp($Basics.abs(a - b),epsilon) < 0;
+   });
+   return _elm.Utils.values = {_op: _op
+                              ,epsilon: epsilon
+                              ,isClose: isClose};
+};
 Elm.Constants = Elm.Constants || {};
 Elm.Constants.make = function (_elm) {
    "use strict";
@@ -6291,7 +6312,9 @@ Elm.Constants.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var moveSpeed = 0.1;
+   var dumpAnimSpeed = 0.1;
+   var loadAnimSpeed = 0.1;
+   var moveAnimSpeed = 0.1;
    var tickTime = 2.0e-2;
    var spareOffs = {ctor: "_Tuple2",_0: 26,_1: 12};
    var tankOffs = {ctor: "_Tuple2",_0: -20,_1: 23};
@@ -6304,11 +6327,9 @@ Elm.Constants.make = function (_elm) {
    var barrelExt = {ctor: "_Tuple3",_0: 20,_1: 29,_2: 9};
    var moonRad = 155;
    var moonExt = {ctor: "_Tuple2",_0: 400,_1: 400};
-   var epsilon = 1.0e-4;
    var fuelConsumption = 5;
    return _elm.Constants.values = {_op: _op
                                   ,fuelConsumption: fuelConsumption
-                                  ,epsilon: epsilon
                                   ,moonExt: moonExt
                                   ,moonRad: moonRad
                                   ,barrelExt: barrelExt
@@ -6321,7 +6342,9 @@ Elm.Constants.make = function (_elm) {
                                   ,tankOffs: tankOffs
                                   ,spareOffs: spareOffs
                                   ,tickTime: tickTime
-                                  ,moveSpeed: moveSpeed};
+                                  ,moveAnimSpeed: moveAnimSpeed
+                                  ,loadAnimSpeed: loadAnimSpeed
+                                  ,dumpAnimSpeed: dumpAnimSpeed};
 };
 Elm.Model = Elm.Model || {};
 Elm.Model.make = function (_elm) {
@@ -6335,7 +6358,8 @@ Elm.Model.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Utils = Elm.Utils.make(_elm);
    var _op = {};
    var dump = function (rover) {
       return _U.cmp(rover.spare,
@@ -6345,6 +6369,11 @@ Elm.Model.make = function (_elm) {
       {ctor: "_Tuple2",_0: rover.pos,_1: rover.spare},
       rover.barrels)})) : $Maybe.Nothing;
    };
+   var pick = F2(function (n,rover) {
+      return A2($Utils.isClose,0,rover.pos) && _U.cmp(rover.spare,
+      0) < 0 ? $Maybe.Just(_U.update(rover,
+      {spare: n})) : $Maybe.Nothing;
+   });
    var fill = F2(function (n,rover) {
       return _U.cmp(n,rover.spare) < 1 && _U.cmp(n + rover.fuel,
       1) < 1 ? $Maybe.Just(_U.update(rover,
@@ -6359,16 +6388,13 @@ Elm.Model.make = function (_elm) {
       ,fuel: A2($Basics.max,fuel,0)
       ,dir: _U.cmp(n,0) < 0 ? -1 : 1})) : $Maybe.Nothing;
    });
-   var isClose = F2(function (a,b) {
-      return _U.cmp($Basics.abs(a - b),$Constants.epsilon) < 0;
-   });
    var takeFuelAt = F3(function (pos,fuel,barrels) {
       var _p0 = barrels;
       if (_p0.ctor === "::" && _p0._0.ctor === "_Tuple2") {
             var _p3 = _p0._1;
             var _p2 = _p0._0._0;
             var _p1 = _p0._0._1;
-            return A2(isClose,pos,_p2) && _U.cmp(_p1,
+            return A2($Utils.isClose,pos,_p2) && _U.cmp(_p1,
             fuel) > -1 ? $Maybe.Just(A2($List._op["::"],
             {ctor: "_Tuple2",_0: _p2,_1: _p1 - fuel},
             _p3)) : A2($Maybe.andThen,
@@ -6379,7 +6405,7 @@ Elm.Model.make = function (_elm) {
                b));
             });
          } else {
-            return A2(isClose,
+            return A2($Utils.isClose,
             pos,
             0) ? $Maybe.Just(barrels) : $Maybe.Nothing;
          }
@@ -6391,11 +6417,6 @@ Elm.Model.make = function (_elm) {
          return $Maybe.Just(_U.update(rover,
          {fuel: rover.fuel + n,barrels: b}));
       }) : $Maybe.Nothing;
-   });
-   var pick = F2(function (n,rover) {
-      return A2(isClose,0,rover.pos) && _U.cmp(rover.spare,
-      0) < 0 ? $Maybe.Just(_U.update(rover,
-      {spare: n})) : $Maybe.Nothing;
    });
    var evalAction = F2(function (rover,action) {
       return A2($Maybe.andThen,
@@ -6472,7 +6493,6 @@ Elm.Model.make = function (_elm) {
                               ,Dump: Dump
                               ,Rover: Rover
                               ,init: init
-                              ,isClose: isClose
                               ,takeFuelAt: takeFuelAt
                               ,move: move
                               ,load: load
@@ -6483,6 +6503,56 @@ Elm.Model.make = function (_elm) {
                               ,evalActions: evalActions
                               ,planRoute: planRoute};
 };
+Elm.Anim = Elm.Anim || {};
+Elm.Anim.make = function (_elm) {
+   "use strict";
+   _elm.Anim = _elm.Anim || {};
+   if (_elm.Anim.values) return _elm.Anim.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Constants = Elm.Constants.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Model = Elm.Model.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var duration = function (action) {
+      var _p0 = action;
+      switch (_p0.ctor)
+      {case "Move": return _p0._0 * $Constants.moveAnimSpeed;
+         case "Load": return _p0._0 * $Constants.loadAnimSpeed;
+         case "Fill": return _p0._0 * $Constants.loadAnimSpeed;
+         case "Pick": return $Constants.dumpAnimSpeed;
+         default: return $Constants.dumpAnimSpeed;}
+   };
+   var dumpInterp = F2(function (anim,t) {    return anim;});
+   var interp = F3(function (anim,action,t) {
+      var interpEval = function (a) {
+         return A2($Maybe.andThen,
+         A2($Model.evalAction,$Maybe.Just(anim.rover),a),
+         function (r) {
+            return $Maybe.Just(_U.update(anim,{rover: r}));
+         });
+      };
+      var _p1 = action;
+      switch (_p1.ctor)
+      {case "Move": return interpEval($Model.Move(t));
+         case "Load": return interpEval($Model.Load(t));
+         case "Fill": return interpEval($Model.Fill(t));
+         case "Pick": return $Maybe.Just(A2(dumpInterp,anim,1 - t));
+         default: return $Maybe.Just(A2(dumpInterp,anim,t));}
+   });
+   var RoverAnim = F4(function (a,b,c,d) {
+      return {rover: a,spareOffs: b,step: c,t: d};
+   });
+   return _elm.Anim.values = {_op: _op
+                             ,RoverAnim: RoverAnim
+                             ,interp: interp
+                             ,dumpInterp: dumpInterp
+                             ,duration: duration};
+};
 Elm.View = Elm.View || {};
 Elm.View.make = function (_elm) {
    "use strict";
@@ -6491,7 +6561,6 @@ Elm.View.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
-   $Constants = Elm.Constants.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
@@ -6502,88 +6571,88 @@ Elm.View.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Transform2D = Elm.Transform2D.make(_elm);
    var _op = {};
-   var moveRot = F3(function (offs,rot,f) {
-      return A2($Graphics$Collage.rotate,
-      rot,
-      $Graphics$Collage.group(_U.list([A2($Graphics$Collage.move,
-      offs,
-      f)])));
-   });
    var img = F3(function (name,w,h) {
       return A3($Graphics$Element.image,
       w,
       h,
       A2($Basics._op["++"],"img/",A2($Basics._op["++"],name,".png")));
    });
-   var barrel = F2(function (offs,fuel) {
-      var _p0 = $Constants.barrelExt;
-      var w = _p0._0;
-      var h = _p0._1;
-      var lid = _p0._2;
-      var hf = (h - lid) * fuel;
-      return A2($Graphics$Collage.move,
-      offs,
+   var wheelOffsR = {ctor: "_Tuple2",_0: 10,_1: -5};
+   var wheelOffsL = {ctor: "_Tuple2",_0: -20,_1: -7};
+   var shakeSpeed = 250;
+   var wheelRotSpeed = 80;
+   var wheelSize = 17;
+   var roverExt = {ctor: "_Tuple3",_0: 66,_1: 52,_2: 20};
+   var barrelExt = {ctor: "_Tuple3",_0: 20,_1: 29,_2: 9};
+   var moonRad = 155;
+   var barrel = F2(function (offs,_p0) {
+      var _p1 = _p0;
+      var _p2 = barrelExt;
+      var w = _p2._0;
+      var h = _p2._1;
+      var lid = _p2._2;
+      var hf = (h - lid) * _p1._1;
+      var g = A2($Graphics$Collage.moveY,
+      moonRad,
       $Graphics$Collage.group(_U.list([A2($Graphics$Collage.moveY,
                                       (hf - h) * 0.5 + 2,
                                       A2($Graphics$Collage.filled,
                                       $Color.orange,
                                       A2($Graphics$Collage.rect,w - 4,hf)))
                                       ,$Graphics$Collage.toForm(A3(img,"barrel",w,h))])));
-   });
-   var barrel_ground = function (_p1) {
-      var _p2 = _p1;
-      return A3(moveRot,
-      {ctor: "_Tuple2",_0: 0,_1: $Constants.moonRad},
-      _p2._0 * 2 * $Basics.pi,
-      A2(barrel,{ctor: "_Tuple2",_0: 0,_1: 0},_p2._1));
-   };
-   var wheel = F2(function (offs,rot) {
       return A2($Graphics$Collage.rotate,
-      rot * $Constants.wheelRotSpeed,
+      _p1._0 * 2 * $Basics.pi,
+      A2($Graphics$Collage.move,
+      offs,
+      $Graphics$Collage.group(_U.list([g]))));
+   });
+   var wheel = F2(function (offs,rot) {
+      return A2($Graphics$Collage.moveY,
+      moonRad,
+      A2($Graphics$Collage.rotate,
+      rot * wheelRotSpeed,
       A2($Graphics$Collage.move,
       offs,
       $Graphics$Collage.toForm(A3(img,
       "wheel",
-      $Constants.wheelSize,
-      $Constants.wheelSize))));
+      wheelSize,
+      wheelSize)))));
    });
    var vehicle = function (_p3) {
       var _p4 = _p3;
       var _p8 = _p4.spare;
       var _p7 = _p4.pos;
       var _p6 = _p4.dir;
-      var shake = $Basics.sin(_p7 * $Constants.shakeSpeed);
+      var shake = $Basics.sin(_p7 * shakeSpeed);
       var wheelm = _p7 * _p6;
-      var _p5 = $Constants.roverExt;
+      var _p5 = roverExt;
       var w = _p5._0;
       var h = _p5._1;
       var hoffs = _p5._2;
-      return A3(moveRot,
-      {ctor: "_Tuple2",_0: 0,_1: $Constants.moonRad},
+      return A2($Graphics$Collage.rotate,
       _p7 * 2 * $Basics.pi * _p6,
       A2($Graphics$Collage.groupTransform,
       $Transform2D.scaleX(_p6),
-      _U.list([_U.cmp(_p8,0) > -1 ? A2(barrel,
+      _U.list([A2(barrel,
+              {ctor: "_Tuple2",_0: -20,_1: 23 + shake},
+              {ctor: "_Tuple2",_0: 0,_1: _p4.fuel})
+              ,_U.cmp(_p8,0) > -1 ? A2(barrel,
+              {ctor: "_Tuple2",_0: 26,_1: 12 - shake},
               {ctor: "_Tuple2"
-              ,_0: $Basics.fst($Constants.spareOffs)
-              ,_1: $Basics.snd($Constants.spareOffs) - shake},
-              _p8) : $Graphics$Collage.group(_U.list([]))
-              ,A2(barrel,
-              {ctor: "_Tuple2"
-              ,_0: $Basics.fst($Constants.tankOffs)
-              ,_1: $Basics.snd($Constants.tankOffs) + shake},
-              _p4.fuel)
+              ,_0: 0
+              ,_1: _p8}) : $Graphics$Collage.group(_U.list([]))
               ,A2($Graphics$Collage.moveY,
-              hoffs + shake,
+              moonRad + hoffs + shake,
               $Graphics$Collage.toForm(A3(img,"rover",w,h)))
-              ,A2(wheel,$Constants.wheelOffsL,wheelm + 1.5)
-              ,A2(wheel,$Constants.wheelOffsR,wheelm + 0.1)])));
+              ,A2(wheel,wheelOffsL,wheelm + 1.5)
+              ,A2(wheel,wheelOffsR,wheelm + 0.1)])));
    };
+   var moonExt = {ctor: "_Tuple2",_0: 400,_1: 400};
    var scene = F2(function (_p10,_p9) {
       var _p11 = _p10;
       var _p14 = _p11._0;
       var _p12 = _p9;
-      var _p13 = $Constants.moonExt;
+      var _p13 = moonExt;
       var mw = _p13._0;
       var mh = _p13._1;
       return A4($Graphics$Element.container,
@@ -6595,15 +6664,22 @@ Elm.View.make = function (_elm) {
       mh,
       _U.list([$Graphics$Collage.toForm(A3(img,"moon",mw,mh))
               ,$Graphics$Collage.group(A2($List.map,
-              barrel_ground,
+              barrel({ctor: "_Tuple2",_0: 0,_1: 0}),
               _p14.barrels))
               ,vehicle(_p14)])));
    });
    return _elm.View.values = {_op: _op
+                             ,moonExt: moonExt
+                             ,moonRad: moonRad
+                             ,barrelExt: barrelExt
+                             ,roverExt: roverExt
+                             ,wheelSize: wheelSize
+                             ,wheelRotSpeed: wheelRotSpeed
+                             ,shakeSpeed: shakeSpeed
+                             ,wheelOffsL: wheelOffsL
+                             ,wheelOffsR: wheelOffsR
                              ,img: img
-                             ,moveRot: moveRot
                              ,barrel: barrel
-                             ,barrel_ground: barrel_ground
                              ,wheel: wheel
                              ,vehicle: vehicle
                              ,scene: scene};
@@ -6626,8 +6702,14 @@ Elm.Main.make = function (_elm) {
    $View = Elm.View.make(_elm),
    $Window = Elm.Window.make(_elm);
    var _op = {};
+   var locationSearch = Elm.Native.Port.make(_elm).inbound("locationSearch",
+   "String",
+   function (v) {
+      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",
+      v);
+   });
    var updMove = F3(function (rover,dt,n) {
-      var dp = rover.dir * dt * $Constants.moveSpeed;
+      var dp = rover.dir * dt * $Constants.moveAnimSpeed;
       var fuel = rover.fuel - dp * $Constants.fuelConsumption;
       var pos = rover.pos - dp;
       return _U.update(rover,{pos: pos,fuel: A2($Basics.max,fuel,0)});

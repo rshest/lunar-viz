@@ -2,7 +2,6 @@ module Constants where
 
 --  model
 fuelConsumption = 5
-epsilon = 0.0001
 
 --  view
 moonExt = (400, 400)
@@ -20,4 +19,7 @@ spareOffs = (26, 12)
 
 --  anim
 tickTime = 0.02
-moveSpeed = 0.1
+
+moveAnimSpeed = 0.1
+loadAnimSpeed = 0.1
+dumpAnimSpeed = 0.1
