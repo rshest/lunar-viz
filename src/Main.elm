@@ -1,7 +1,7 @@
 module Main where
 
 import Window
-import Graphics.Element exposing (..)
+import Html exposing (Html)
 import Signal exposing (..)
 
 import Time exposing (..)
@@ -18,7 +18,7 @@ type Update = Tick Float
 updates : Signal Update
 updates =
   mergeMany [ map Tick (Time.every (Time.second*tickTime)) ]
- 
+
 
 foldUpd : Update -> RoverAnim -> RoverAnim
 foldUpd update anim =
@@ -26,7 +26,7 @@ foldUpd update anim =
     Tick _ ->
       Anim.advance anim tickTime
 
-main : Signal Element
+main : Signal Html
 main =
   map2 View.scene
   (foldp foldUpd Anim.init updates)

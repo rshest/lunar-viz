@@ -1,12 +1,17 @@
 module View where
 
+import Utils exposing (..)
 import Constants exposing (..)
-import Anim exposing(RoverAnim)
+import Model exposing (Action)
+import Anim exposing (RoverAnim)
 
 import Color exposing (..)
 import Transform2D exposing (..)
 import Graphics.Element exposing (..)
 import Graphics.Collage exposing (..)
+
+import Html exposing (..)
+import Html.Attributes exposing (..)
 
 
 img : String -> Int -> Int -> Element
@@ -60,18 +65,42 @@ vehicle anim =
     , if spare >= 0 then barrel soffs spare else group []
     ] |> groupTransform (scaleX -dir) |> moveRot (0, moonRad) (pos*2*pi)
 
+-- html element for a single action text represenation
+actionElem : Float -> Action -> Html
+actionElem opacity action =
+  let
+    textNum = \t n -> t ++ toString(n)
+    (cl, txt) =
+      case action of
+        Model.Move n -> ("act_move",
+          textNum (if n < 0 then "cw " else "ccw ") (abs n))
+        Model.Load n -> ("act_load", textNum "load " n)
+        Model.Fill n -> ("act_fill", textNum "fill " n)
+        Model.Pick n -> ("act_pick", textNum "pick " n)
+        Model.Dump -> ("act_dump", "dump")
+        Model.Stock n -> ("act_stock",
+          (if isClose n 1 then "stock" else (textNum "stock " n)))
+  in
+    span [class cl, style [("opacity", (toString opacity))]] [Html.text txt]
 
 -- full scene display
-scene : RoverAnim -> (Int, Int) -> Element
+scene : RoverAnim -> (Int, Int) -> Html
 scene anim (w, h) =
   let (mw, mh) = moonExt
       animInt = Anim.interp anim
       rover = animInt.rover
+      actionElems = (List.map (actionElem 1) (List.take anim.step anim.route))
+      actionLastElem =
+        case Anim.curAction anim of
+          Nothing -> []
+          Just action -> [actionElem anim.t action]
   in
-  container w h topLeft
-  (collage mw mh
+  div []
+  [ fromElement (collage mw mh
     [
       img "moon" mw mh |> toForm
     , vehicle animInt
     , group (List.map barrel_ground rover.barrels)
     ])
+  , div [class "route_pane"] (actionElems ++ actionLastElem)
+  ]

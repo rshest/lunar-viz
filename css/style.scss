@@ -1,7 +1,61 @@
 body {
-    font-family: "Arial";
-    color: #aaaaaa;
-    background: black;
-    background-image: url("../img/stars.png");
-    background-repeat: repeat;
+  font-family: Arial;
+  font-size: 15px;
+  color: #bbbbbb;
+  background: black;
+  background-image: url("../img/stars.png");
+  background-repeat: repeat;
+}
+
+.route_pane {
+  float: left;
+}
+
+.action {
+  white-space: pre;
+  background-color:rgba(255,255,255,0.2);
+  border-radius: 4px;
+
+  margin-top: 4px;
+  margin-bottom: 4px;
+  margin-right: 2px;
+  margin-left: 2px;
+
+  padding-right: 4px;
+  padding-left: 4px;
+  padding-bottom: 0px;
+  padding-top: 0px;
+
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.act_move {
+  @extend .action;
+  color: #cdde87;
+}
+
+.act_dump {
+  @extend .action;
+  color: #f59a42;
+}
+
+.act_stock {
+  @extend .action;
+  background-color: transparent;
+  color: #9bb6cb;
+}
+
+.act_stock:before {
+  content: '\A';
+}
+
+.act_load {
+  @extend .action;
+  color: #f7c358;
+}
+
+.act_fill {
+  @extend .action;
+  color: #ffffff;
 }
