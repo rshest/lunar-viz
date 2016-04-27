@@ -8,7 +8,7 @@ body {
 }
 
 .route_pane {
-  float: left;
+  display: block;;
 }
 
 .action {
@@ -58,4 +58,20 @@ body {
 .act_fill {
   @extend .action;
   color: #ffffff;
+}
+
+
+.fuel_pane {
+  display: block;;
+}
+
+.fuel_caption {
+  font-size: 16px;
+}
+
+.fuel_count {
+  font-weight: bold;
+  font-size: 16px;
+  color: #ffffff;
+  margin-left: 10px;
 }

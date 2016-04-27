@@ -11636,6 +11636,22 @@ Elm.Model.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Utils = Elm.Utils.make(_elm);
    var _op = {};
+   var totalFuel = function (actions) {
+      totalFuel: while (true) {
+         var _p0 = actions;
+         if (_p0.ctor === "::") {
+               if (_p0._0.ctor === "Move") {
+                     return $Basics.abs(_p0._0._0) * $Constants.fuelConsumption + totalFuel(_p0._1);
+                  } else {
+                     var _v1 = _p0._1;
+                     actions = _v1;
+                     continue totalFuel;
+                  }
+            } else {
+               return 0;
+            }
+      }
+   };
    var dump = function (rover) {
       return _U.cmp(rover.spare,
       0) > -1 ? $Maybe.Just(_U.update(rover,
@@ -11664,21 +11680,21 @@ Elm.Model.make = function (_elm) {
       ,dir: _U.cmp(n,0) < 0 ? -1 : 1})) : $Maybe.Nothing;
    });
    var takeFuelAt = F3(function (pos,fuel,barrels) {
-      var _p0 = barrels;
-      if (_p0.ctor === "::" && _p0._0.ctor === "_Tuple2") {
-            var _p3 = _p0._1;
-            var _p2 = _p0._0._0;
-            var _p1 = _p0._0._1;
+      var _p1 = barrels;
+      if (_p1.ctor === "::" && _p1._0.ctor === "_Tuple2") {
+            var _p4 = _p1._1;
+            var _p3 = _p1._0._0;
+            var _p2 = _p1._0._1;
             return A2($Utils.isClose,
             $Utils.frac(pos),
-            $Utils.frac(_p2)) && _U.cmp(_p1,
+            $Utils.frac(_p3)) && _U.cmp(_p2,
             fuel) > -1 ? $Maybe.Just(A2($List._op["::"],
-            {ctor: "_Tuple2",_0: _p2,_1: _p1 - fuel},
-            _p3)) : A2($Maybe.andThen,
-            A3(takeFuelAt,pos,fuel,_p3),
+            {ctor: "_Tuple2",_0: _p3,_1: _p2 - fuel},
+            _p4)) : A2($Maybe.andThen,
+            A3(takeFuelAt,pos,fuel,_p4),
             function (b) {
                return $Maybe.Just(A2($List._op["::"],
-               {ctor: "_Tuple2",_0: _p2,_1: _p1},
+               {ctor: "_Tuple2",_0: _p3,_1: _p2},
                b));
             });
          } else {
@@ -11712,15 +11728,15 @@ Elm.Model.make = function (_elm) {
       return A2($Maybe.andThen,
       rover,
       function (r) {
-         var _p4 = action;
-         switch (_p4.ctor)
-         {case "Move": return A2(move,_p4._0,r);
-            case "Load": return A2(load,_p4._0,r);
-            case "Fill": return A2(fill,_p4._0,r);
-            case "Pick": return A2(pick,_p4._0,r);
+         var _p5 = action;
+         switch (_p5.ctor)
+         {case "Move": return A2(move,_p5._0,r);
+            case "Load": return A2(load,_p5._0,r);
+            case "Fill": return A2(fill,_p5._0,r);
+            case "Pick": return A2(pick,_p5._0,r);
             case "Stock": return A2(evalAction,
               Load(1 - r.fuel),
-              A2(evalAction,Pick(_p4._0),rover));
+              A2(evalAction,Pick(_p5._0),rover));
             default: return dump(r);}
       });
    });
@@ -11824,6 +11840,7 @@ Elm.Model.make = function (_elm) {
                               ,dump: dump
                               ,evalAction: evalAction
                               ,evalActions: evalActions
+                              ,totalFuel: totalFuel
                               ,planRoute: planRoute};
 };
 Elm.Anim = Elm.Anim || {};
@@ -12106,9 +12123,8 @@ Elm.View.make = function (_elm) {
                return _U.list([A2(actionElem,anim.t,_p11._0)]);
             }
       }();
-      var actionElems = A2($List.map,
-      actionElem(1),
-      A2($List.take,anim.step,anim.route));
+      var steps = A2($List.take,anim.step,anim.route);
+      var actionElems = A2($List.map,actionElem(1),steps);
       var animInt = $Anim.interp(anim);
       var rover = animInt.rover;
       var _p12 = $Constants.moonExt;
@@ -12124,6 +12140,14 @@ Elm.View.make = function (_elm) {
                       ,$Graphics$Collage.group(A2($List.map,
                       barrel_ground,
                       rover.barrels))])))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("fuel_pane")]),
+              _U.list([A2($Html.span,
+                      _U.list([$Html$Attributes.$class("fuel_caption")]),
+                      _U.list([$Html.text("Fuel Used:")]))
+                      ,A2($Html.span,
+                      _U.list([$Html$Attributes.$class("fuel_count")]),
+                      _U.list([$Html.text($Basics.toString($Basics.round($Model.totalFuel(steps))))]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("route_pane")]),
               A2($Basics._op["++"],actionElems,actionLastElem))]));

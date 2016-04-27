@@ -89,7 +89,8 @@ scene anim (w, h) =
   let (mw, mh) = moonExt
       animInt = Anim.interp anim
       rover = animInt.rover
-      actionElems = (List.map (actionElem 1) (List.take anim.step anim.route))
+      steps = List.take anim.step anim.route
+      actionElems = (List.map (actionElem 1) steps)
       actionLastElem =
         case Anim.curAction anim of
           Nothing -> []
@@ -102,5 +103,10 @@ scene anim (w, h) =
     , vehicle animInt
     , group (List.map barrel_ground rover.barrels)
     ])
+  , div [class "fuel_pane"]
+    [
+      span [class "fuel_caption"] [Html.text "Fuel Used:"],
+      span [class "fuel_count"] [Html.text (Model.totalFuel steps |> round |> toString)]
+    ]
   , div [class "route_pane"] (actionElems ++ actionLastElem)
   ]

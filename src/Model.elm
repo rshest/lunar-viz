@@ -106,6 +106,15 @@ evalActions actions =
   List.foldl (\a r -> evalAction a r) (Just {init | fuel = 1, spare = 1}) actions
 
 
+-- computes total fuel used on the route
+totalFuel : List Action -> Float
+totalFuel actions =
+  case actions of
+    (Move n)::xs -> abs(n)*fuelConsumption + totalFuel(xs)
+    _::xs -> totalFuel(xs)
+    _ -> 0
+
+
 --  plans a route according to the problem
 planRoute : List Action
 planRoute = [
