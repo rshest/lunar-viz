@@ -9,6 +9,12 @@ isClose a b =
   abs(a - b) < epsilon
 
 
+--  fractional part (standard Elm library does not have it?..)
+frac : Float -> Float
+frac x =
+  x - (toFloat (floor x))
+
+
 --  returns equation of parabola (ax^2 + bx + c = 0) through three points
 parabolaFrom3pt : (Float, Float) -> (Float, Float) -> (Float, Float) -> (Float, Float, Float)
 parabolaFrom3pt (x1, y1) (x2, y2) (x3, y3) =

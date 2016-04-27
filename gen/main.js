@@ -6311,6 +6311,9 @@ Elm.Utils.make = function (_elm) {
       var c = (_p10 * _p8 * (_p10 - _p8) * _p13 + _p8 * _p12 * (_p8 - _p12) * _p11 + _p12 * _p10 * (_p12 - _p10) * _p9) / d;
       return {ctor: "_Tuple3",_0: a,_1: b,_2: c};
    });
+   var frac = function (x) {
+      return x - $Basics.toFloat($Basics.floor(x));
+   };
    var epsilon = 1.0e-4;
    var isClose = F2(function (a,b) {
       return _U.cmp($Basics.abs(a - b),epsilon) < 0;
@@ -6318,6 +6321,7 @@ Elm.Utils.make = function (_elm) {
    return _elm.Utils.values = {_op: _op
                               ,epsilon: epsilon
                               ,isClose: isClose
+                              ,frac: frac
                               ,parabolaFrom3pt: parabolaFrom3pt
                               ,parabolaPt: parabolaPt};
 };
@@ -6420,7 +6424,9 @@ Elm.Model.make = function (_elm) {
             var _p3 = _p0._1;
             var _p2 = _p0._0._0;
             var _p1 = _p0._0._1;
-            return A2($Utils.isClose,pos,_p2) && _U.cmp(_p1,
+            return A2($Utils.isClose,
+            $Utils.frac(pos),
+            $Utils.frac(_p2)) && _U.cmp(_p1,
             fuel) > -1 ? $Maybe.Just(A2($List._op["::"],
             {ctor: "_Tuple2",_0: _p2,_1: _p1 - fuel},
             _p3)) : A2($Maybe.andThen,
@@ -6535,11 +6541,13 @@ Elm.Model.make = function (_elm) {
                            ,Move(0.1)
                            ,Load(0.5)
                            ,Move(0.1)
-                           ,Stock
+                           ,Pick(0.5)
+                           ,Load(1)
                            ,Move(0.1)
                            ,Dump
                            ,Move(-0.1)
-                           ,Stock
+                           ,Pick(0.5)
+                           ,Load(1)
                            ,Move(-0.1)
                            ,Dump
                            ,Move(0.1)

@@ -37,7 +37,7 @@ takeFuelAt : Float -> Float -> List (Float, Float) -> Maybe (List (Float, Float)
 takeFuelAt pos fuel barrels =
   case barrels of
     (bpos, bfuel)::bs ->
-      if Utils.isClose pos bpos && bfuel >= fuel then
+      if Utils.isClose (Utils.frac pos) (Utils.frac bpos) && bfuel >= fuel then
         Just ((bpos, bfuel - fuel)::bs)
       else takeFuelAt pos fuel bs `Maybe.andThen` \b -> Just ((bpos, bfuel)::b)
     _ -> if Utils.isClose pos 0 then (Just barrels) else Nothing
@@ -117,6 +117,6 @@ planRoute = [
   Stock, Move -0.1, Dump, Move 0.1,
   Stock, Move 0.1, Load 0.5, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1, Load 0.5, Move -0.1,
   Stock, Move -0.1, Load 0.5, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1, Load 0.5, Move 0.1,
-  Stock, Move 0.1, Dump, Move -0.1,
-  Stock, Move -0.1, Dump, Move 0.1,
+  Pick 0.5, Load 1, Move 0.1, Dump, Move -0.1,
+  Pick 0.5, Load 1, Move -0.1, Dump, Move 0.1,
   Stock, Move 0.1, Load 0.5, Move 0.2, Load 1, Move 0.2, Fill 1, Move 0.2, Load 1, Move 0.2, Load 0.5, Move 0.1]
