@@ -6818,7 +6818,7 @@ Elm.View.make = function (_elm) {
       return A4($Graphics$Element.container,
       _p6._0,
       _p6._1,
-      $Graphics$Element.midLeft,
+      $Graphics$Element.topLeft,
       A3($Graphics$Collage.collage,
       mw,
       mh,

@@ -1,7 +1,6 @@
 module View where
 
 import Constants exposing (..)
-import Model exposing(Rover)
 import Anim exposing(RoverAnim)
 
 import Color exposing (..)
@@ -69,7 +68,7 @@ scene anim (w, h) =
       animInt = Anim.interp anim
       rover = animInt.rover
   in
-  container w h midLeft
+  container w h topLeft
   (collage mw mh
     [
       img "moon" mw mh |> toForm
