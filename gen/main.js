@@ -11588,6 +11588,7 @@ Elm.Constants.make = function (_elm) {
    var loadAnimSpeed = 1;
    var moveAnimSpeed = 10;
    var tickTime = 2.0e-2;
+   var pathGranularity = 64;
    var restSpareOffs = {ctor: "_Tuple2",_0: 32,_1: 12};
    var tankOffs = {ctor: "_Tuple2",_0: -14,_1: 23};
    var wheelPhase = {ctor: "_Tuple2",_0: 1.5,_1: 0.1};
@@ -11598,6 +11599,7 @@ Elm.Constants.make = function (_elm) {
    var wheelSize = 17;
    var roverExt = {ctor: "_Tuple3",_0: 66,_1: 52,_2: 20};
    var barrelExt = {ctor: "_Tuple3",_0: 20,_1: 29,_2: 9};
+   var pathRad = 136;
    var moonRad = 150;
    var moonExt = {ctor: "_Tuple2",_0: 400,_1: 400};
    var fuelConsumption = 5;
@@ -11605,6 +11607,7 @@ Elm.Constants.make = function (_elm) {
                                   ,fuelConsumption: fuelConsumption
                                   ,moonExt: moonExt
                                   ,moonRad: moonRad
+                                  ,pathRad: pathRad
                                   ,barrelExt: barrelExt
                                   ,roverExt: roverExt
                                   ,wheelSize: wheelSize
@@ -11615,6 +11618,7 @@ Elm.Constants.make = function (_elm) {
                                   ,wheelPhase: wheelPhase
                                   ,tankOffs: tankOffs
                                   ,restSpareOffs: restSpareOffs
+                                  ,pathGranularity: pathGranularity
                                   ,tickTime: tickTime
                                   ,moveAnimSpeed: moveAnimSpeed
                                   ,loadAnimSpeed: loadAnimSpeed
@@ -12028,6 +12032,22 @@ Elm.View.make = function (_elm) {
                                                ,_1: $Basics.toString(opacity)}]))]),
       _U.list([$Html.text(txt)]));
    });
+   var roverPath = function (pos) {
+      var dottedLine = $Graphics$Collage.dashed($Color.blue);
+      var n = pos * $Constants.pathGranularity;
+      var nn = $Basics.round(n);
+      var range = _U.cmp(pos,0) > 0 ? $List.reverse(_U.range(0,
+      nn)) : _U.range(nn,0);
+      var i2pt = function (i) {
+         var ang = (0 - $Basics.toFloat(i)) * 2 * $Basics.pi * pos / n;
+         return {ctor: "_Tuple2"
+                ,_0: $Constants.pathRad * $Basics.sin(ang)
+                ,_1: $Constants.pathRad * $Basics.cos(ang)};
+      };
+      return A2($Graphics$Collage.traced,
+      _U.update(dottedLine,{width: 3}),
+      $Graphics$Collage.path(A2($List.map,i2pt,range)));
+   };
    var moveRot = F3(function (offs,rot,f) {
       return A2($Graphics$Collage.rotate,
       rot,
@@ -12080,9 +12100,7 @@ Elm.View.make = function (_elm) {
       var fuel = _p7.fuel;
       var spare = _p7.spare;
       var wheelm = pos * dir;
-      var shake = $Basics.sin(A2($Debug.watch,
-      "pos",
-      pos) * $Constants.shakeSpeed);
+      var shake = $Basics.sin(pos * $Constants.shakeSpeed);
       var soffs = {ctor: "_Tuple2"
                   ,_0: $Basics.fst(anim.spareOffs)
                   ,_1: $Basics.snd(anim.spareOffs) - shake};
@@ -12136,6 +12154,7 @@ Elm.View.make = function (_elm) {
               mw,
               mh,
               _U.list([$Graphics$Collage.toForm(A3(img,"moon",mw,mh))
+                      ,roverPath(rover.pos)
                       ,vehicle(animInt)
                       ,$Graphics$Collage.group(A2($List.map,
                       barrel_ground,
@@ -12159,6 +12178,7 @@ Elm.View.make = function (_elm) {
                              ,barrel_ground: barrel_ground
                              ,wheel: wheel
                              ,vehicle: vehicle
+                             ,roverPath: roverPath
                              ,actionElem: actionElem
                              ,scene: scene};
 };

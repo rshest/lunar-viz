@@ -23,16 +23,15 @@ moveRot : (Float, Float) -> Float -> Form -> Form
 moveRot offs rot f =
     [f |> move offs] |> group |> rotate rot
 
+
 -- displays a barrel
 barrel : (Float, Float) -> Float -> Form
 barrel offs fuel =
   let (w, h, lid) = barrelExt
       hf = (h - lid)*fuel
   in
-    [
-      rect (w - 4) hf |> filled orange |> moveY ((hf - h)*0.5 + 2)
+    [ rect (w - 4) hf |> filled orange |> moveY ((hf - h)*0.5 + 2)
     , img "barrel" w h |> toForm
-    --, show "100%" |> toForm |>  moveY 25
     ] |> group |> move offs
 
 
@@ -55,7 +54,7 @@ vehicle anim =
   let (w, h, hoffs) = roverExt
       {pos, dir, fuel, spare} = anim.rover
       wheelm = pos*dir
-      shake = sin((Debug.watch "pos" pos)*shakeSpeed)
+      shake = sin(pos*shakeSpeed)
       soffs = (fst anim.spareOffs, snd anim.spareOffs - shake)
   in [
       barrel (fst tankOffs, snd tankOffs + shake) fuel
@@ -64,6 +63,20 @@ vehicle anim =
     , wheel wheelOffsR (wheelm + (snd wheelPhase))
     , if spare >= 0 then barrel soffs spare else group []
     ] |> groupTransform (scaleX -dir) |> moveRot (0, moonRad) (pos*2*pi)
+
+
+--  draws a tracking path from the base, corresponding to the current rover location
+roverPath : Float -> Form
+roverPath pos =
+  let n = pos*pathGranularity
+      nn = round n
+      range = if pos > 0 then ([0..nn] |> List.reverse) else [nn..0]
+      i2pt = \i -> let ang = -(toFloat i)*2*pi*pos/n in
+        (pathRad*sin(ang), pathRad*cos(ang))
+      dottedLine = dashed blue
+  in
+    (List.map i2pt range) |> path |> traced {dottedLine | width = 3}
+
 
 -- html element for a single action text represenation
 actionElem : Float -> Action -> Html
@@ -100,6 +113,7 @@ scene anim (w, h) =
   [ fromElement (collage mw mh
     [
       img "moon" mw mh |> toForm
+    , roverPath rover.pos
     , vehicle animInt
     , group (List.map barrel_ground rover.barrels)
     ])

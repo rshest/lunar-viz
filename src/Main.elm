@@ -9,9 +9,7 @@ import Time exposing (..)
 import View
 import Anim exposing (RoverAnim, advance)
 
-import Constants exposing (..)
-
---port locationSearch : String
+import Constants exposing (tickTime)
 
 type Update = Tick Float
 
