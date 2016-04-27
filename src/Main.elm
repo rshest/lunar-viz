@@ -18,13 +18,13 @@ type Update = Tick Float
 updates : Signal Update
 updates =
   mergeMany [ map Tick (Time.every (Time.second*tickTime)) ]
-
+ 
 
 foldUpd : Update -> RoverAnim -> RoverAnim
 foldUpd update anim =
   case update of
     Tick _ ->
-      Anim.advance anim tickTime 
+      Anim.advance anim tickTime
 
 main : Signal Element
 main =

@@ -6278,6 +6278,49 @@ Elm.Window.make = function (_elm) {
                                ,width: width
                                ,height: height};
 };
+Elm.Utils = Elm.Utils || {};
+Elm.Utils.make = function (_elm) {
+   "use strict";
+   _elm.Utils = _elm.Utils || {};
+   if (_elm.Utils.values) return _elm.Utils.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var parabolaPt = F2(function (_p0,x) {
+      var _p1 = _p0;
+      return _p1._0 * x * x + _p1._1 * x + _p1._2;
+   });
+   var parabolaFrom3pt = F3(function (_p4,_p3,_p2) {
+      var _p5 = _p4;
+      var _p13 = _p5._1;
+      var _p12 = _p5._0;
+      var _p6 = _p3;
+      var _p11 = _p6._1;
+      var _p10 = _p6._0;
+      var _p7 = _p2;
+      var _p9 = _p7._1;
+      var _p8 = _p7._0;
+      var d = (_p12 - _p10) * (_p12 - _p8) * (_p10 - _p8);
+      var a = (_p8 * (_p11 - _p13) + _p10 * (_p13 - _p9) + _p12 * (_p9 - _p11)) / d;
+      var b = (_p8 * _p8 * (_p13 - _p11) + _p10 * _p10 * (_p9 - _p13) + _p12 * _p12 * (_p11 - _p9)) / d;
+      var c = (_p10 * _p8 * (_p10 - _p8) * _p13 + _p8 * _p12 * (_p8 - _p12) * _p11 + _p12 * _p10 * (_p12 - _p10) * _p9) / d;
+      return {ctor: "_Tuple3",_0: a,_1: b,_2: c};
+   });
+   var epsilon = 1.0e-4;
+   var isClose = F2(function (a,b) {
+      return _U.cmp($Basics.abs(a - b),epsilon) < 0;
+   });
+   return _elm.Utils.values = {_op: _op
+                              ,epsilon: epsilon
+                              ,isClose: isClose
+                              ,parabolaFrom3pt: parabolaFrom3pt
+                              ,parabolaPt: parabolaPt};
+};
 Elm.Constants = Elm.Constants || {};
 Elm.Constants.make = function (_elm) {
    "use strict";
@@ -6291,12 +6334,14 @@ Elm.Constants.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var dumpAnimSpeed = 1;
+   var dumpHeight = 40;
+   var dumpAnimSpeed = 0.5;
    var loadAnimSpeed = 1;
    var moveAnimSpeed = 10;
    var tickTime = 2.0e-2;
-   var spareOffs = {ctor: "_Tuple2",_0: 26,_1: 12};
+   var restSpareOffs = {ctor: "_Tuple2",_0: 26,_1: 12};
    var tankOffs = {ctor: "_Tuple2",_0: -20,_1: 23};
+   var wheelPhase = {ctor: "_Tuple2",_0: 1.5,_1: 0.1};
    var wheelOffsR = {ctor: "_Tuple2",_0: 10,_1: -5};
    var wheelOffsL = {ctor: "_Tuple2",_0: -20,_1: -7};
    var shakeSpeed = 250;
@@ -6318,50 +6363,14 @@ Elm.Constants.make = function (_elm) {
                                   ,shakeSpeed: shakeSpeed
                                   ,wheelOffsL: wheelOffsL
                                   ,wheelOffsR: wheelOffsR
+                                  ,wheelPhase: wheelPhase
                                   ,tankOffs: tankOffs
-                                  ,spareOffs: spareOffs
+                                  ,restSpareOffs: restSpareOffs
                                   ,tickTime: tickTime
                                   ,moveAnimSpeed: moveAnimSpeed
                                   ,loadAnimSpeed: loadAnimSpeed
-                                  ,dumpAnimSpeed: dumpAnimSpeed};
-};
-Elm.Utils = Elm.Utils || {};
-Elm.Utils.make = function (_elm) {
-   "use strict";
-   _elm.Utils = _elm.Utils || {};
-   if (_elm.Utils.values) return _elm.Utils.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var parabola3pt = F3(function (_p2,_p1,_p0) {
-      var _p3 = _p2;
-      var _p11 = _p3._1;
-      var _p10 = _p3._0;
-      var _p4 = _p1;
-      var _p9 = _p4._1;
-      var _p8 = _p4._0;
-      var _p5 = _p0;
-      var _p7 = _p5._1;
-      var _p6 = _p5._0;
-      var d = (_p10 - _p8) * (_p10 - _p6) * (_p8 - _p6);
-      var a = (_p6 * (_p9 - _p11) + _p8 * (_p11 - _p7) + _p10 * (_p7 - _p9)) / d;
-      var b = (_p6 * _p6 * (_p11 - _p9) + _p8 * _p8 * (_p7 - _p11) + _p10 * _p10 * (_p9 - _p7)) / d;
-      var c = (_p8 * _p6 * (_p8 - _p6) * _p11 + _p6 * _p10 * (_p6 - _p10) * _p9 + _p10 * _p8 * (_p10 - _p8) * _p7) / d;
-      return {ctor: "_Tuple3",_0: a,_1: b,_2: c};
-   });
-   var epsilon = 1.0e-4;
-   var isClose = F2(function (a,b) {
-      return _U.cmp($Basics.abs(a - b),epsilon) < 0;
-   });
-   return _elm.Utils.values = {_op: _op
-                              ,epsilon: epsilon
-                              ,isClose: isClose
-                              ,parabola3pt: parabola3pt};
+                                  ,dumpAnimSpeed: dumpAnimSpeed
+                                  ,dumpHeight: dumpHeight};
 };
 Elm.Model = Elm.Model || {};
 Elm.Model.make = function (_elm) {
@@ -6435,7 +6444,20 @@ Elm.Model.make = function (_elm) {
          {fuel: rover.fuel + n,barrels: b}));
       }) : $Maybe.Nothing;
    });
-   var evalAction = F2(function (rover,action) {
+   var init = {pos: 0
+              ,dir: 1
+              ,fuel: 1
+              ,spare: 1
+              ,barrels: _U.list([])};
+   var Rover = F5(function (a,b,c,d,e) {
+      return {pos: a,dir: b,fuel: c,spare: d,barrels: e};
+   });
+   var Stock = {ctor: "Stock"};
+   var Dump = {ctor: "Dump"};
+   var Pick = function (a) {    return {ctor: "Pick",_0: a};};
+   var Fill = function (a) {    return {ctor: "Fill",_0: a};};
+   var Load = function (a) {    return {ctor: "Load",_0: a};};
+   var evalAction = F2(function (action,rover) {
       return A2($Maybe.andThen,
       rover,
       function (r) {
@@ -6445,38 +6467,27 @@ Elm.Model.make = function (_elm) {
             case "Load": return A2(load,_p4._0,r);
             case "Fill": return A2(fill,_p4._0,r);
             case "Pick": return A2(pick,_p4._0,r);
-            default: return dump(r);}
+            case "Dump": return dump(r);
+            default: return A2(evalAction,
+              Load(1 - r.fuel),
+              A2(evalAction,Pick(1),rover));}
       });
    });
-   var init = {pos: 0
-              ,dir: 1
-              ,fuel: 1
-              ,spare: 1
-              ,barrels: _U.list([])};
    var evalActions = function (actions) {
       return A3($List.foldl,
-      F2(function (a,r) {    return A2(evalAction,r,a);}),
+      F2(function (a,r) {    return A2(evalAction,a,r);}),
       $Maybe.Just(init),
       actions);
    };
-   var Rover = F5(function (a,b,c,d,e) {
-      return {pos: a,dir: b,fuel: c,spare: d,barrels: e};
-   });
-   var Dump = {ctor: "Dump"};
-   var Pick = function (a) {    return {ctor: "Pick",_0: a};};
-   var Fill = function (a) {    return {ctor: "Fill",_0: a};};
-   var Load = function (a) {    return {ctor: "Load",_0: a};};
    var Move = function (a) {    return {ctor: "Move",_0: a};};
    var planRoute = _U.list([Move(-0.1)
                            ,Dump
                            ,Move(0.1)
-                           ,Load(1)
-                           ,Pick(1)
+                           ,Stock
                            ,Move(0.1)
                            ,Dump
                            ,Move(-0.1)
-                           ,Load(1)
-                           ,Pick(1)
+                           ,Stock
                            ,Move(-0.1)
                            ,Load(0.5)
                            ,Move(-0.1)
@@ -6484,8 +6495,7 @@ Elm.Model.make = function (_elm) {
                            ,Move(0.1)
                            ,Load(0.5)
                            ,Move(0.1)
-                           ,Load(1)
-                           ,Pick(1)
+                           ,Stock
                            ,Move(0.1)
                            ,Load(0.5)
                            ,Move(0.1)
@@ -6493,8 +6503,7 @@ Elm.Model.make = function (_elm) {
                            ,Move(-0.1)
                            ,Load(0.5)
                            ,Move(-0.1)
-                           ,Load(1)
-                           ,Pick(1)
+                           ,Stock
                            ,Move(10000000)]);
    return _elm.Model.values = {_op: _op
                               ,Move: Move
@@ -6502,6 +6511,7 @@ Elm.Model.make = function (_elm) {
                               ,Fill: Fill
                               ,Pick: Pick
                               ,Dump: Dump
+                              ,Stock: Stock
                               ,Rover: Rover
                               ,init: init
                               ,takeFuelAt: takeFuelAt
@@ -6527,7 +6537,8 @@ Elm.Anim.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Model = Elm.Model.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $Utils = Elm.Utils.make(_elm);
    var _op = {};
    var duration = function (action) {
       var _p0 = action;
@@ -6537,15 +6548,29 @@ Elm.Anim.make = function (_elm) {
          case "Load": return _p0._0 * $Constants.loadAnimSpeed;
          case "Fill": return _p0._0 * $Constants.loadAnimSpeed;
          case "Pick": return $Constants.dumpAnimSpeed;
+         case "Dump": return $Constants.dumpAnimSpeed;
          default: return $Constants.dumpAnimSpeed;}
    };
-   var dumpInterp = F2(function (anim,t) {    return anim;});
+   var dumpParabola = A3($Utils.parabolaFrom3pt,
+   {ctor: "_Tuple2",_0: 0,_1: 0},
+   {ctor: "_Tuple2"
+   ,_0: $Basics.fst($Constants.restSpareOffs) / 2
+   ,_1: $Constants.dumpHeight},
+   $Constants.restSpareOffs);
+   var dumpInterp = F3(function (anim,n,t) {
+      var rover = anim.rover;
+      var x = $Basics.fst($Constants.restSpareOffs) * (1 - t);
+      var y = A2($Utils.parabolaPt,dumpParabola,x);
+      return _U.update(anim,
+      {spareOffs: {ctor: "_Tuple2",_0: x,_1: y}
+      ,rover: _U.update(rover,{spare: n})});
+   });
    var curAction = function (anim) {
       return $List.head(A2($List.drop,anim.step,anim.route));
    };
    var interp = function (anim) {
       var interpEval = function (a) {
-         var _p1 = A2($Model.evalAction,$Maybe.Just(anim.rover),a);
+         var _p1 = A2($Model.evalAction,a,$Maybe.Just(anim.rover));
          if (_p1.ctor === "Nothing") {
                return anim;
             } else {
@@ -6559,8 +6584,11 @@ Elm.Anim.make = function (_elm) {
                return interpEval($Model.Move(anim.t * _p2._0._0));
                case "Load": return interpEval($Model.Load(anim.t * _p2._0._0));
                case "Fill": return interpEval($Model.Fill(anim.t * _p2._0._0));
-               case "Pick": return A2(dumpInterp,anim,1 - anim.t);
-               default: return A2(dumpInterp,anim,anim.t);}
+               case "Pick": return A3(dumpInterp,anim,_p2._0._0,1 - anim.t);
+               case "Dump": return A3(dumpInterp,anim,anim.rover.spare,anim.t);
+               default:
+               var anim1 = interpEval($Model.Load(anim.t * (1 - anim.rover.fuel)));
+                 return A3(dumpInterp,anim1,1,1 - anim.t);}
          } else {
             return anim;
          }
@@ -6584,7 +6612,7 @@ Elm.Anim.make = function (_elm) {
                var _p5 = _p3._0;
                var t = anim.t + dt / duration(_p5);
                if (_U.cmp(t,1) < 0) return _U.update(anim,{t: t}); else {
-                     var _p4 = A2($Model.evalAction,$Maybe.Just(anim.rover),_p5);
+                     var _p4 = A2($Model.evalAction,_p5,$Maybe.Just(anim.rover));
                      if (_p4.ctor === "Nothing") {
                            return _U.update(anim,{status: Stuck});
                         } else {
@@ -6601,7 +6629,7 @@ Elm.Anim.make = function (_elm) {
    });
    var InProgress = {ctor: "InProgress"};
    var init = {rover: $Model.init
-              ,spareOffs: $Constants.spareOffs
+              ,spareOffs: $Constants.restSpareOffs
               ,step: 0
               ,t: 0
               ,status: InProgress
@@ -6614,6 +6642,7 @@ Elm.Anim.make = function (_elm) {
                              ,init: init
                              ,curAction: curAction
                              ,interp: interp
+                             ,dumpParabola: dumpParabola
                              ,dumpInterp: dumpInterp
                              ,duration: duration
                              ,advance: advance};
@@ -6633,7 +6662,6 @@ Elm.View.make = function (_elm) {
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Model = Elm.Model.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Transform2D = Elm.Transform2D.make(_elm);
@@ -6683,59 +6711,65 @@ Elm.View.make = function (_elm) {
       $Constants.wheelSize,
       $Constants.wheelSize))));
    });
-   var vehicle = function (_p3) {
-      var _p4 = _p3;
-      var _p8 = _p4.spare;
-      var _p7 = _p4.pos;
-      var _p6 = _p4.dir;
+   var vehicle = function (anim) {
+      var _p3 = anim.rover;
+      var pos = _p3.pos;
+      var dir = _p3.dir;
+      var fuel = _p3.fuel;
+      var spare = _p3.spare;
+      var wheelm = pos * dir;
       var shake = $Basics.sin(A2($Debug.watch,
       "pos",
-      _p7) * $Constants.shakeSpeed);
-      var wheelm = _p7 * _p6;
-      var _p5 = $Constants.roverExt;
-      var w = _p5._0;
-      var h = _p5._1;
-      var hoffs = _p5._2;
+      pos) * $Constants.shakeSpeed);
+      var soffs = {ctor: "_Tuple2"
+                  ,_0: $Basics.fst(anim.spareOffs)
+                  ,_1: $Basics.snd(anim.spareOffs) - shake};
+      var _p4 = $Constants.roverExt;
+      var w = _p4._0;
+      var h = _p4._1;
+      var hoffs = _p4._2;
       return A3(moveRot,
       {ctor: "_Tuple2",_0: 0,_1: $Constants.moonRad},
-      _p7 * 2 * $Basics.pi,
+      pos * 2 * $Basics.pi,
       A2($Graphics$Collage.groupTransform,
-      $Transform2D.scaleX(0 - _p6),
-      _U.list([_U.cmp(_p8,0) > -1 ? A2(barrel,
-              {ctor: "_Tuple2"
-              ,_0: $Basics.fst($Constants.spareOffs)
-              ,_1: $Basics.snd($Constants.spareOffs) - shake},
-              _p8) : $Graphics$Collage.group(_U.list([]))
-              ,A2(barrel,
+      $Transform2D.scaleX(0 - dir),
+      _U.list([A2(barrel,
               {ctor: "_Tuple2"
               ,_0: $Basics.fst($Constants.tankOffs)
               ,_1: $Basics.snd($Constants.tankOffs) + shake},
-              _p4.fuel)
+              fuel)
               ,A2($Graphics$Collage.moveY,
               hoffs + shake,
               $Graphics$Collage.toForm(A3(img,"rover",w,h)))
-              ,A2(wheel,$Constants.wheelOffsL,wheelm + 1.5)
-              ,A2(wheel,$Constants.wheelOffsR,wheelm + 0.1)])));
+              ,A2(wheel,
+              $Constants.wheelOffsL,
+              wheelm + $Basics.fst($Constants.wheelPhase))
+              ,A2(wheel,
+              $Constants.wheelOffsR,
+              wheelm + $Basics.snd($Constants.wheelPhase))
+              ,_U.cmp(spare,0) > -1 ? A2(barrel,
+              soffs,
+              spare) : $Graphics$Collage.group(_U.list([]))])));
    };
-   var scene = F2(function (anim,_p9) {
-      var _p10 = _p9;
-      var _p11 = $Anim.interp(anim);
-      var rover = _p11.rover;
-      var _p12 = $Constants.moonExt;
-      var mw = _p12._0;
-      var mh = _p12._1;
+   var scene = F2(function (anim,_p5) {
+      var _p6 = _p5;
+      var animInt = $Anim.interp(anim);
+      var rover = animInt.rover;
+      var _p7 = $Constants.moonExt;
+      var mw = _p7._0;
+      var mh = _p7._1;
       return A4($Graphics$Element.container,
-      _p10._0,
-      _p10._1,
+      _p6._0,
+      _p6._1,
       $Graphics$Element.midLeft,
       A3($Graphics$Collage.collage,
       mw,
       mh,
       _U.list([$Graphics$Collage.toForm(A3(img,"moon",mw,mh))
+              ,vehicle(animInt)
               ,$Graphics$Collage.group(A2($List.map,
               barrel_ground,
-              rover.barrels))
-              ,vehicle(rover)])));
+              rover.barrels))])));
    });
    return _elm.View.values = {_op: _op
                              ,img: img

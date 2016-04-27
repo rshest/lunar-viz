@@ -69,14 +69,22 @@ model = suite "Model Eval"
 
   test "Can't load - no fuel"
     (let r = Model.evalActions [Move 0.1, Dump, Load 0.5, Move 0.1, Move -0.1, Load 1] in
-      assertEqual (Nothing) (r))
+      assertEqual (Nothing) (r)),
+
+  test "Stock"
+    (let r = Model.evalActions [Move 0.05, Dump, Move -0.05, Stock] in
+      assertEqual (Just {pos = 0.0, dir = -1, fuel = 1, spare = 1, barrels = [(0.05, 1)]}) (r))
   ]
 
 
 utils : Test
 utils = suite "Utils"
   [
-  test "Parabola 3 points"
-    (let (a, b, c) = parabola3pt (0, -3) (1, 0) (2, 7) in
-      assert (isClose a  2 && isClose b 1 && isClose c -3))
+  test "Parabola from 3 points"
+    (let (a, b, c) = parabolaFrom3pt (0, -3) (1, 0) (2, 7) in
+      assert (isClose a 2 && isClose b 1 && isClose c -3)),
+
+  test "Parabola equation"
+    (let y = parabolaPt (2, 1, -3) 2 in
+      assert (isClose 7 y))
   ]

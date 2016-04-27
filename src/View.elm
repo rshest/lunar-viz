@@ -46,19 +46,19 @@ wheel offs rot =
 
 
 --  displays the vehicle (rover)
-vehicle : Rover -> Form
-vehicle {pos, dir, fuel, spare} =
+vehicle : RoverAnim -> Form
+vehicle anim =
   let (w, h, hoffs) = roverExt
+      {pos, dir, fuel, spare} = anim.rover
       wheelm = pos*dir
       shake = sin((Debug.watch "pos" pos)*shakeSpeed)
+      soffs = (fst anim.spareOffs, snd anim.spareOffs - shake)
   in [
-      if spare >= 0 then
-        barrel (fst spareOffs, snd spareOffs - shake) spare
-      else group []
-    , barrel (fst tankOffs, snd tankOffs + shake) fuel
+      barrel (fst tankOffs, snd tankOffs + shake) fuel
     , img "rover" w h |> toForm |>  moveY (hoffs + shake)
-    , wheel wheelOffsL (wheelm + 1.5)
-    , wheel wheelOffsR (wheelm + 0.1)
+    , wheel wheelOffsL (wheelm + (fst wheelPhase))
+    , wheel wheelOffsR (wheelm + (snd wheelPhase))
+    , if spare >= 0 then barrel soffs spare else group []
     ] |> groupTransform (scaleX -dir) |> moveRot (0, moonRad) (pos*2*pi)
 
 
@@ -66,10 +66,13 @@ vehicle {pos, dir, fuel, spare} =
 scene : RoverAnim -> (Int, Int) -> Element
 scene anim (w, h) =
   let (mw, mh) = moonExt
-      {rover} = Anim.interp anim
+      animInt = Anim.interp anim
+      rover = animInt.rover
   in
   container w h midLeft
-  (collage mw mh [
+  (collage mw mh
+    [
       img "moon" mw mh |> toForm
+    , vehicle animInt
     , group (List.map barrel_ground rover.barrels)
-    , vehicle rover])
+    ])

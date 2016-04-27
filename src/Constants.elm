@@ -14,12 +14,15 @@ wheelRotSpeed = -120
 shakeSpeed = 250
 wheelOffsL = (-20, -7)
 wheelOffsR = (10, -5)
+wheelPhase = (1.5, 0.1)
 tankOffs = (-20, 23)
-spareOffs = (26, 12)
+restSpareOffs = (26, 12)
 
 --  anim
 tickTime = 0.02
 
 moveAnimSpeed = 10
 loadAnimSpeed = 1
-dumpAnimSpeed = 1
+dumpAnimSpeed = 0.5
+
+dumpHeight = 40

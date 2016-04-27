@@ -9,6 +9,7 @@ type Action =
   | Fill Float  -- fill n units from the spare tank
   | Pick Float  -- pick a spare tank with n units of fuel
   | Dump        -- dump the spare tank on the ground
+  | Stock       -- (at base) refill the full tank, pick one spare
 
 
 type alias Rover =
@@ -87,8 +88,8 @@ dump rover =
 
 
 --  evaluates a state according to an action
-evalAction : Maybe Rover -> Action -> Maybe Rover
-evalAction rover action =
+evalAction : Action -> Maybe Rover -> Maybe Rover
+evalAction action rover =
   rover `Maybe.andThen` \r ->
     case action of
       Move n -> move n r
@@ -96,19 +97,20 @@ evalAction rover action =
       Fill n -> fill n r
       Pick n -> pick n r
       Dump   -> dump r
+      Stock  -> rover |> evalAction (Pick 1) |> evalAction (Load (1 - r.fuel))
 
 
 --  evaluates list of actions from the initial state
 evalActions : List Action -> Maybe Rover
 evalActions actions =
-  List.foldl (\a r -> evalAction r a) (Just init) actions
+  List.foldl (\a r -> evalAction a r) (Just init) actions
 
 
 --  plans a route according to the problem
 planRoute : List Action
 planRoute = [
   Move -0.1, Dump, Move 0.1,
-  Load 1, Pick 1, Move 0.1, Dump, Move -0.1,
-  Load 1, Pick 1, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1,
-  Load 1, Pick 1, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1,
-  Load 1, Pick 1, Move 10000000]
+  Stock, Move 0.1, Dump, Move -0.1,
+  Stock, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1,
+  Stock, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1,
+  Stock, Move 10000000]

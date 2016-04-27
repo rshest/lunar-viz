@@ -1,5 +1,6 @@
 module Anim where
 
+import Utils
 import Constants exposing (..)
 import Model exposing (..)
 
@@ -24,7 +25,7 @@ type alias RoverAnim =
 init : RoverAnim
 init =
   { rover = Model.init
-  , spareOffs = spareOffs
+  , spareOffs = restSpareOffs
   , step = 0
   , t = 0
   , status = InProgress
@@ -38,13 +39,12 @@ curAction anim =
   anim.route |> List.drop anim.step |> List.head
 
 
-
 -- interpolates rover state according to action and factor t [0, 1]
 interp : RoverAnim -> RoverAnim
 interp anim  =
   let interpEval =
     \a ->
-      case Model.evalAction (Just anim.rover) a of
+      case Model.evalAction a (Just anim.rover) of
         Nothing -> anim
         Just rover -> {anim | rover = rover}
   in
@@ -52,14 +52,28 @@ interp anim  =
       Just (Move n) -> interpEval (Move (anim.t*n))
       Just (Load n) -> interpEval (Load (anim.t*n))
       Just (Fill n) -> interpEval (Fill (anim.t*n))
-      Just (Pick n) -> dumpInterp anim (1 - anim.t)
-      Just (Dump) -> dumpInterp anim anim.t
+      Just (Pick n) -> dumpInterp anim n (1 - anim.t)
+      Just (Dump) -> dumpInterp anim anim.rover.spare anim.t
+      Just (Stock) ->
+        let anim1 = interpEval (Load (anim.t*(1 - anim.rover.fuel))) in
+         dumpInterp anim1 1 (1 - anim.t)
       Nothing -> anim
 
+
+-- parabola equation for the tank dumping annimation
+dumpParabola : (Float, Float, Float)
+dumpParabola =
+  Utils.parabolaFrom3pt (0, 0) ((fst restSpareOffs)/2, dumpHeight) restSpareOffs
+
+
 -- interpolates dump animation (pick is reverse)
-dumpInterp : RoverAnim -> Float -> RoverAnim
-dumpInterp anim t =
-  anim
+dumpInterp : RoverAnim -> Float -> Float -> RoverAnim
+dumpInterp anim n t =
+  let x = (fst restSpareOffs)*(1 - t)
+      y =  Utils.parabolaPt dumpParabola x
+      rover = anim.rover
+  in
+    { anim | spareOffs = (x, y), rover = {rover | spare = n } }
 
 
 -- returns animation durations for different actions, seconds
@@ -71,6 +85,7 @@ duration action =
     Fill n -> n*loadAnimSpeed
     Pick n -> dumpAnimSpeed
     Dump   -> dumpAnimSpeed
+    Stock  -> dumpAnimSpeed
 
 
 -- advances scene animation according to the time delta
@@ -83,7 +98,7 @@ advance anim dt =
         if t < 1 then
           {anim | t = t}
         else
-          case Model.evalAction (Just anim.rover) action of
+          case Model.evalAction action (Just anim.rover) of
             Nothing -> {anim | status = Stuck}
             Just rover -> advance {anim | step = anim.step + 1,
               t = t - 1, rover = rover} 0
