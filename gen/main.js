@@ -6452,13 +6452,13 @@ Elm.Model.make = function (_elm) {
    });
    var init = {pos: 0
               ,dir: 1
-              ,fuel: 1
-              ,spare: 1
+              ,fuel: 0
+              ,spare: -1
               ,barrels: _U.list([])};
    var Rover = F5(function (a,b,c,d,e) {
       return {pos: a,dir: b,fuel: c,spare: d,barrels: e};
    });
-   var Stock = {ctor: "Stock"};
+   var Stock = function (a) {    return {ctor: "Stock",_0: a};};
    var Dump = {ctor: "Dump"};
    var Pick = function (a) {    return {ctor: "Pick",_0: a};};
    var Fill = function (a) {    return {ctor: "Fill",_0: a};};
@@ -6473,53 +6473,28 @@ Elm.Model.make = function (_elm) {
             case "Load": return A2(load,_p4._0,r);
             case "Fill": return A2(fill,_p4._0,r);
             case "Pick": return A2(pick,_p4._0,r);
-            case "Dump": return dump(r);
-            default: return A2(evalAction,
+            case "Stock": return A2(evalAction,
               Load(1 - r.fuel),
-              A2(evalAction,Pick(1),rover));}
+              A2(evalAction,Pick(_p4._0),rover));
+            default: return dump(r);}
       });
    });
    var evalActions = function (actions) {
       return A3($List.foldl,
       F2(function (a,r) {    return A2(evalAction,a,r);}),
-      $Maybe.Just(init),
+      $Maybe.Just(_U.update(init,{fuel: 1,spare: 1})),
       actions);
    };
    var Move = function (a) {    return {ctor: "Move",_0: a};};
-   var planRoute = _U.list([Move(0.1)
-                           ,Dump
-                           ,Move(-0.1)
-                           ,Stock
-                           ,Move(-0.1)
-                           ,Dump
-                           ,Move(0.1)
-                           ,Stock
-                           ,Move(0.1)
-                           ,Load(0.5)
+   var planRoute = _U.list([Stock(1)
                            ,Move(0.1)
                            ,Dump
                            ,Move(-0.1)
-                           ,Load(0.5)
-                           ,Move(-0.1)
-                           ,Stock
-                           ,Move(-0.1)
-                           ,Load(0.5)
+                           ,Stock(1)
                            ,Move(-0.1)
                            ,Dump
                            ,Move(0.1)
-                           ,Load(0.5)
-                           ,Move(0.1)
-                           ,Stock
-                           ,Move(0.1)
-                           ,Dump
-                           ,Move(-0.1)
-                           ,Stock
-                           ,Move(-0.1)
-                           ,Dump
-                           ,Move(0.1)
-                           ,Stock
-                           ,Move(0.1)
-                           ,Load(0.5)
+                           ,Stock(1)
                            ,Move(0.1)
                            ,Load(0.5)
                            ,Move(0.1)
@@ -6527,9 +6502,35 @@ Elm.Model.make = function (_elm) {
                            ,Move(-0.1)
                            ,Load(0.5)
                            ,Move(-0.1)
+                           ,Stock(1)
+                           ,Move(-0.1)
                            ,Load(0.5)
                            ,Move(-0.1)
-                           ,Stock
+                           ,Dump
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
+                           ,Stock(1)
+                           ,Move(0.1)
+                           ,Dump
+                           ,Move(-0.1)
+                           ,Stock(1)
+                           ,Move(-0.1)
+                           ,Dump
+                           ,Move(0.1)
+                           ,Stock(1)
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
+                           ,Dump
+                           ,Move(-0.1)
+                           ,Load(0.5)
+                           ,Move(-0.1)
+                           ,Load(0.5)
+                           ,Move(-0.1)
+                           ,Stock(1)
                            ,Move(-0.1)
                            ,Load(0.5)
                            ,Move(-0.1)
@@ -6541,17 +6542,15 @@ Elm.Model.make = function (_elm) {
                            ,Move(0.1)
                            ,Load(0.5)
                            ,Move(0.1)
-                           ,Pick(0.5)
-                           ,Load(1)
+                           ,Stock(0.5)
                            ,Move(0.1)
                            ,Dump
                            ,Move(-0.1)
-                           ,Pick(0.5)
-                           ,Load(1)
+                           ,Stock(0.5)
                            ,Move(-0.1)
                            ,Dump
                            ,Move(0.1)
-                           ,Stock
+                           ,Stock(1)
                            ,Move(0.1)
                            ,Load(0.5)
                            ,Move(0.2)
@@ -6606,7 +6605,7 @@ Elm.Anim.make = function (_elm) {
          case "Load": return _p0._0 * $Constants.loadAnimSpeed;
          case "Fill": return _p0._0 * $Constants.loadAnimSpeed;
          case "Pick": return $Constants.dumpAnimSpeed;
-         case "Dump": return $Constants.dumpAnimSpeed;
+         case "Stock": return $Constants.dumpAnimSpeed;
          default: return $Constants.dumpAnimSpeed;}
    };
    var dumpParabola = A3($Utils.parabolaFrom3pt,
@@ -6646,7 +6645,7 @@ Elm.Anim.make = function (_elm) {
                case "Dump": return A3(dumpInterp,anim,anim.rover.spare,anim.t);
                default:
                var anim1 = interpEval($Model.Load(anim.t * (1 - anim.rover.fuel)));
-                 return A3(dumpInterp,anim1,1,1 - anim.t);}
+                 return A3(dumpInterp,anim1,_p2._0._0,1 - anim.t);}
          } else {
             return anim;
          }

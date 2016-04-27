@@ -54,9 +54,9 @@ interp anim  =
       Just (Fill n) -> interpEval (Fill (anim.t*n))
       Just (Pick n) -> dumpInterp anim n (1 - anim.t)
       Just (Dump) -> dumpInterp anim anim.rover.spare anim.t
-      Just (Stock) ->
+      Just (Stock n) ->
         let anim1 = interpEval (Load (anim.t*(1 - anim.rover.fuel))) in
-         dumpInterp anim1 1 (1 - anim.t)
+         dumpInterp anim1 n (1 - anim.t)
       Nothing -> anim
 
 
@@ -84,8 +84,8 @@ duration action =
     Load n -> n*loadAnimSpeed
     Fill n -> n*loadAnimSpeed
     Pick n -> dumpAnimSpeed
+    Stock n -> dumpAnimSpeed
     Dump   -> dumpAnimSpeed
-    Stock  -> dumpAnimSpeed
 
 
 -- advances scene animation according to the time delta

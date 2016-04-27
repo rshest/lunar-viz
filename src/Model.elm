@@ -9,7 +9,7 @@ type Action =
   | Fill Float  -- fill n units from the spare tank
   | Pick Float  -- pick a spare tank with n units of fuel
   | Dump        -- dump the spare tank on the ground
-  | Stock       -- (at base) refill the full tank, pick one spare
+  | Stock Float -- (at base) refill the full tank, pick one spare with n units
 
 
 type alias Rover =
@@ -26,8 +26,8 @@ init : Rover
 init =
   { pos = 0
   , dir = 1
-  , fuel = 1
-  , spare = 1
+  , fuel = 0
+  , spare = -1
   , barrels = []
   }
 
@@ -96,27 +96,27 @@ evalAction action rover =
       Load n -> load n r
       Fill n -> fill n r
       Pick n -> pick n r
-      Dump   -> dump r
-      Stock  -> rover |> evalAction (Pick 1) |> evalAction (Load (1 - r.fuel))
+      Stock n -> rover |> evalAction (Pick n) |> evalAction (Load (1 - r.fuel))
+      Dump -> dump r
 
 
 --  evaluates list of actions from the initial state
 evalActions : List Action -> Maybe Rover
 evalActions actions =
-  List.foldl (\a r -> evalAction a r) (Just init) actions
+  List.foldl (\a r -> evalAction a r) (Just {init | fuel = 1, spare = 1}) actions
 
 
 --  plans a route according to the problem
 planRoute : List Action
 planRoute = [
-  Move 0.1, Dump, Move -0.1,
-  Stock, Move -0.1, Dump, Move 0.1,
-  Stock, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1,
-  Stock, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1,
-  Stock, Move 0.1, Dump, Move -0.1,
-  Stock, Move -0.1, Dump, Move 0.1,
-  Stock, Move 0.1, Load 0.5, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1, Load 0.5, Move -0.1,
-  Stock, Move -0.1, Load 0.5, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1, Load 0.5, Move 0.1,
-  Pick 0.5, Load 1, Move 0.1, Dump, Move -0.1,
-  Pick 0.5, Load 1, Move -0.1, Dump, Move 0.1,
-  Stock, Move 0.1, Load 0.5, Move 0.2, Load 1, Move 0.2, Fill 1, Move 0.2, Load 1, Move 0.2, Load 0.5, Move 0.1]
+  Stock 1, Move 0.1, Dump, Move -0.1,
+  Stock 1, Move -0.1, Dump, Move 0.1,
+  Stock 1, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1,
+  Stock 1, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1,
+  Stock 1, Move 0.1, Dump, Move -0.1,
+  Stock 1, Move -0.1, Dump, Move 0.1,
+  Stock 1, Move 0.1, Load 0.5, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1, Load 0.5, Move -0.1,
+  Stock 1, Move -0.1, Load 0.5, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1, Load 0.5, Move 0.1,
+  Stock 0.5, Move 0.1, Dump, Move -0.1,
+  Stock 0.5, Move -0.1, Dump, Move 0.1,
+  Stock 1, Move 0.1, Load 0.5, Move 0.2, Load 1, Move 0.2, Fill 1, Move 0.2, Load 1, Move 0.2, Load 0.5, Move 0.1]
