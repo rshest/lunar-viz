@@ -6480,12 +6480,20 @@ Elm.Model.make = function (_elm) {
       actions);
    };
    var Move = function (a) {    return {ctor: "Move",_0: a};};
-   var planRoute = _U.list([Move(-0.1)
+   var planRoute = _U.list([Move(0.1)
+                           ,Dump
+                           ,Move(-0.1)
+                           ,Stock
+                           ,Move(-0.1)
                            ,Dump
                            ,Move(0.1)
                            ,Stock
                            ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
                            ,Dump
+                           ,Move(-0.1)
+                           ,Load(0.5)
                            ,Move(-0.1)
                            ,Stock
                            ,Move(-0.1)
@@ -6497,14 +6505,56 @@ Elm.Model.make = function (_elm) {
                            ,Move(0.1)
                            ,Stock
                            ,Move(0.1)
+                           ,Dump
+                           ,Move(-0.1)
+                           ,Stock
+                           ,Move(-0.1)
+                           ,Dump
+                           ,Move(0.1)
+                           ,Stock
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
                            ,Load(0.5)
                            ,Move(0.1)
                            ,Dump
                            ,Move(-0.1)
                            ,Load(0.5)
                            ,Move(-0.1)
+                           ,Load(0.5)
+                           ,Move(-0.1)
                            ,Stock
-                           ,Move(10000000)]);
+                           ,Move(-0.1)
+                           ,Load(0.5)
+                           ,Move(-0.1)
+                           ,Load(0.5)
+                           ,Move(-0.1)
+                           ,Dump
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.1)
+                           ,Stock
+                           ,Move(0.1)
+                           ,Dump
+                           ,Move(-0.1)
+                           ,Stock
+                           ,Move(-0.1)
+                           ,Dump
+                           ,Move(0.1)
+                           ,Stock
+                           ,Move(0.1)
+                           ,Load(0.5)
+                           ,Move(0.2)
+                           ,Load(1)
+                           ,Move(0.2)
+                           ,Fill(1)
+                           ,Move(0.2)
+                           ,Load(1)
+                           ,Move(0.2)
+                           ,Load(0.5)
+                           ,Move(0.1)]);
    return _elm.Model.values = {_op: _op
                               ,Move: Move
                               ,Load: Load

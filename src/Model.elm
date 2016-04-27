@@ -109,8 +109,14 @@ evalActions actions =
 --  plans a route according to the problem
 planRoute : List Action
 planRoute = [
-  Move -0.1, Dump, Move 0.1,
-  Stock, Move 0.1, Dump, Move -0.1,
-  Stock, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1,
+  Move 0.1, Dump, Move -0.1,
+  Stock, Move -0.1, Dump, Move 0.1,
   Stock, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1,
-  Stock, Move 10000000]
+  Stock, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1,
+  Stock, Move 0.1, Dump, Move -0.1,
+  Stock, Move -0.1, Dump, Move 0.1,
+  Stock, Move 0.1, Load 0.5, Move 0.1, Load 0.5, Move 0.1, Dump, Move -0.1, Load 0.5, Move -0.1, Load 0.5, Move -0.1,
+  Stock, Move -0.1, Load 0.5, Move -0.1, Load 0.5, Move -0.1, Dump, Move 0.1, Load 0.5, Move 0.1, Load 0.5, Move 0.1,
+  Stock, Move 0.1, Dump, Move -0.1,
+  Stock, Move -0.1, Dump, Move 0.1,
+  Stock, Move 0.1, Load 0.5, Move 0.2, Load 1, Move 0.2, Fill 1, Move 0.2, Load 1, Move 0.2, Load 0.5, Move 0.1]
