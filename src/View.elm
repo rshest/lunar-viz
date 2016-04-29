@@ -79,7 +79,7 @@ roverPath pos =
 
 
 -- html element for a single action text represenation
-actionElem : Float -> Action -> Html
+actionElem : Float -> Action -> List Html
 actionElem opacity action =
   let
     textNum = \t n -> t ++ toString(n)
@@ -93,8 +93,10 @@ actionElem opacity action =
         Model.Dump -> ("act_dump", "dump")
         Model.Stock n -> ("act_stock",
           (if isClose n 1 then "stock" else (textNum "stock " n)))
+    css = style [("opacity", (toString opacity))]
+    el = span [class cl, css] [Html.text txt]
   in
-    span [class cl, style [("opacity", (toString opacity))]] [Html.text txt]
+    if cl == "act_stock" then [br [] [], el] else [el]
 
 -- full scene display
 scene : RoverAnim -> (Int, Int) -> Html
@@ -103,11 +105,11 @@ scene anim (w, h) =
       animInt = Anim.interp anim
       rover = animInt.rover
       steps = List.take anim.step anim.route
-      actionElems = (List.map (actionElem 1) steps)
+      actionElems = (List.map (actionElem 1) steps) |> List.concat
       actionLastElem =
         case Anim.curAction anim of
           Nothing -> []
-          Just action -> [actionElem anim.t action]
+          Just action -> actionElem anim.t action
   in
   div []
   [ fromElement (collage mw mh

@@ -11994,6 +11994,9 @@ Elm.View.make = function (_elm) {
    $Utils = Elm.Utils.make(_elm);
    var _op = {};
    var actionElem = F2(function (opacity,action) {
+      var css = $Html$Attributes.style(_U.list([{ctor: "_Tuple2"
+                                                ,_0: "opacity"
+                                                ,_1: $Basics.toString(opacity)}]));
       var textNum = F2(function (t,n) {
          return A2($Basics._op["++"],t,$Basics.toString(n));
       });
@@ -12025,12 +12028,13 @@ Elm.View.make = function (_elm) {
       }();
       var cl = _p0._0;
       var txt = _p0._1;
-      return A2($Html.span,
-      _U.list([$Html$Attributes.$class(cl)
-              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2"
-                                               ,_0: "opacity"
-                                               ,_1: $Basics.toString(opacity)}]))]),
+      var el = A2($Html.span,
+      _U.list([$Html$Attributes.$class(cl),css]),
       _U.list([$Html.text(txt)]));
+      return _U.eq(cl,"act_stock") ? _U.list([A2($Html.br,
+                                             _U.list([]),
+                                             _U.list([]))
+                                             ,el]) : _U.list([el]);
    });
    var roverPath = function (pos) {
       var dottedLine = $Graphics$Collage.dashed($Color.blue);
@@ -12138,11 +12142,13 @@ Elm.View.make = function (_elm) {
          if (_p11.ctor === "Nothing") {
                return _U.list([]);
             } else {
-               return _U.list([A2(actionElem,anim.t,_p11._0)]);
+               return A2(actionElem,anim.t,_p11._0);
             }
       }();
       var steps = A2($List.take,anim.step,anim.route);
-      var actionElems = A2($List.map,actionElem(1),steps);
+      var actionElems = $List.concat(A2($List.map,
+      actionElem(1),
+      steps));
       var animInt = $Anim.interp(anim);
       var rover = animInt.rover;
       var _p12 = $Constants.moonExt;
