@@ -11556,6 +11556,10 @@ Elm.Utils.make = function (_elm) {
       var c = (_p10 * _p8 * (_p10 - _p8) * _p13 + _p8 * _p12 * (_p8 - _p12) * _p11 + _p12 * _p10 * (_p12 - _p10) * _p9) / d;
       return {ctor: "_Tuple3",_0: a,_1: b,_2: c};
    });
+   var lerp = F3(function (a,b,t) {
+      var tc = A3($Basics.clamp,0,1,t);
+      return a * (1 - tc) + b * tc;
+   });
    var frac = function (x) {
       return x - $Basics.toFloat($Basics.floor(x));
    };
@@ -11567,6 +11571,7 @@ Elm.Utils.make = function (_elm) {
                               ,epsilon: epsilon
                               ,isClose: isClose
                               ,frac: frac
+                              ,lerp: lerp
                               ,parabolaFrom3pt: parabolaFrom3pt
                               ,parabolaPt: parabolaPt};
 };

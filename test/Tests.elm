@@ -72,7 +72,7 @@ model = suite "Model Eval"
       assertEqual (Nothing) (r)),
 
   test "Stock"
-    (let r = Model.evalActions [Move 0.05, Dump, Move -0.05, Stock] in
+    (let r = Model.evalActions [Move 0.05, Dump, Move -0.05, Stock 1] in
       assertEqual (Just {pos = 0.0, dir = -1, fuel = 1, spare = 1, barrels = [(0.05, 1)]}) (r))
   ]
 
@@ -86,5 +86,9 @@ utils = suite "Utils"
 
   test "Parabola equation"
     (let y = parabolaPt (2, 1, -3) 2 in
-      assert (isClose 7 y))
+      assert (isClose 7 y)),
+
+  test "Lerp"
+    (let res = List.map (lerp 1 2) [0, 0.5, 0.25, 1, -2, -1, 10] in
+      assertEqual res [1, 1.5, 1.25,  2, 1, 1, 2])
   ]

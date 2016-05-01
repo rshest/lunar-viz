@@ -15,6 +15,13 @@ frac x =
   x - (toFloat (floor x))
 
 
+--  linear interpolation between a and b with t
+lerp : Float -> Float -> Float -> Float
+lerp a b t =
+  let tc = clamp 0 1 t in
+    a*(1 - tc) + b*tc
+
+
 --  returns equation of parabola (ax^2 + bx + c = 0) through three points
 parabolaFrom3pt : (Float, Float) -> (Float, Float) -> (Float, Float) -> (Float, Float, Float)
 parabolaFrom3pt (x1, y1) (x2, y2) (x3, y3) =
