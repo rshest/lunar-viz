@@ -6,7 +6,7 @@ import Model exposing (..)
 
 
 evalPath : List Action -> Maybe Rover
-evalPath = Model.evalActions (Just init)
+evalPath = Model.evalActions (Just {init | fuel = 1, spare = 1})
 
 model : Test
 model = suite "Model Eval"
