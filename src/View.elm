@@ -105,11 +105,12 @@ scene anim (w, h) =
       animInt = Anim.interp anim
       rover = animInt.rover
       steps = List.take anim.step anim.route
-      actionElems = (List.map (actionElem 1) steps) |> List.concat
-      actionLastElem =
-        case Anim.curAction anim of
-          Nothing -> []
-          Just action -> actionElem anim.t action
+      opacities = List.map
+        (\i -> if i < anim.step then 1
+          else if i == anim.step then lerp futureStepOpacity 1 anim.t
+          else futureStepOpacity)
+        [0..(List.length anim.route - 1)]
+      actionElems = (List.map2 actionElem opacities anim.route) |> List.concat
   in
   div []
   [ fromElement (collage mw mh
@@ -124,5 +125,5 @@ scene anim (w, h) =
       span [class "fuel_caption"] [Html.text "Fuel Used:"],
       span [class "fuel_count"] [Html.text (Model.totalFuel steps |> round |> toString)]
     ]
-  , div [class "route_pane"] (actionElems ++ actionLastElem)
+  , div [class "route_pane"] actionElems
   ]

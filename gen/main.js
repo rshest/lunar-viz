@@ -11593,6 +11593,7 @@ Elm.Constants.make = function (_elm) {
    var loadAnimSpeed = 1;
    var moveAnimSpeed = 10;
    var tickTime = 2.0e-2;
+   var futureStepOpacity = 0.2;
    var pathGranularity = 64;
    var restSpareOffs = {ctor: "_Tuple2",_0: 32,_1: 12};
    var tankOffs = {ctor: "_Tuple2",_0: -14,_1: 23};
@@ -11624,6 +11625,7 @@ Elm.Constants.make = function (_elm) {
                                   ,tankOffs: tankOffs
                                   ,restSpareOffs: restSpareOffs
                                   ,pathGranularity: pathGranularity
+                                  ,futureStepOpacity: futureStepOpacity
                                   ,tickTime: tickTime
                                   ,moveAnimSpeed: moveAnimSpeed
                                   ,loadAnimSpeed: loadAnimSpeed
@@ -12142,23 +12144,25 @@ Elm.View.make = function (_elm) {
    };
    var scene = F2(function (anim,_p9) {
       var _p10 = _p9;
-      var actionLastElem = function () {
-         var _p11 = $Anim.curAction(anim);
-         if (_p11.ctor === "Nothing") {
-               return _U.list([]);
-            } else {
-               return A2(actionElem,anim.t,_p11._0);
-            }
-      }();
+      var opacities = A2($List.map,
+      function (i) {
+         return _U.cmp(i,anim.step) < 0 ? 1 : _U.eq(i,
+         anim.step) ? A3($Utils.lerp,
+         $Constants.futureStepOpacity,
+         1,
+         anim.t) : $Constants.futureStepOpacity;
+      },
+      _U.range(0,$List.length(anim.route) - 1));
+      var actionElems = $List.concat(A3($List.map2,
+      actionElem,
+      opacities,
+      anim.route));
       var steps = A2($List.take,anim.step,anim.route);
-      var actionElems = $List.concat(A2($List.map,
-      actionElem(1),
-      steps));
       var animInt = $Anim.interp(anim);
       var rover = animInt.rover;
-      var _p12 = $Constants.moonExt;
-      var mw = _p12._0;
-      var mh = _p12._1;
+      var _p11 = $Constants.moonExt;
+      var mw = _p11._0;
+      var mh = _p11._1;
       return A2($Html.div,
       _U.list([]),
       _U.list([$Html.fromElement(A3($Graphics$Collage.collage,
@@ -12180,7 +12184,7 @@ Elm.View.make = function (_elm) {
                       _U.list([$Html.text($Basics.toString($Basics.round($Model.totalFuel(steps))))]))]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.$class("route_pane")]),
-              A2($Basics._op["++"],actionElems,actionLastElem))]));
+              actionElems)]));
    });
    return _elm.View.values = {_op: _op
                              ,img: img

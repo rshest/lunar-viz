@@ -21,6 +21,8 @@ restSpareOffs = (32, 12)
 
 pathGranularity = 64
 
+futureStepOpacity = 0.2
+
 --  anim
 tickTime = 0.02
 
