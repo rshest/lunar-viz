@@ -11,7 +11,16 @@ import Graphics.Element exposing (..)
 import Graphics.Collage exposing (..)
 
 import Html exposing (..)
+import Html.Events exposing (..)
 import Html.Attributes exposing (..)
+
+import Signal exposing (Address)
+
+
+type Update =
+    Tick Float
+  | JumpToStep Int
+  | NoOp
 
 
 img : String -> Int -> Int -> Element
@@ -79,8 +88,8 @@ roverPath pos =
 
 
 -- html element for a single action text represenation
-actionElem : Float -> Action -> List Html
-actionElem opacity action =
+actionElem : Address Update -> Int -> Float -> Action -> List Html
+actionElem address index opacity action =
   let
     textNum = \t n -> t ++ toString(n)
     (cl, txt) =
@@ -90,27 +99,29 @@ actionElem opacity action =
         Model.Load n -> ("act_load", textNum "load " n)
         Model.Fill n -> ("act_fill", textNum "fill " n)
         Model.Pick n -> ("act_pick", textNum "pick " n)
-        Model.Dump -> ("act_dump", "dump")
         Model.Stock n -> ("act_stock",
           (if isClose n 1 then "stock" else (textNum "stock " n)))
+        Model.Dump -> ("act_dump", "dump")
     css = style [("opacity", (toString opacity))]
-    el = span [class cl, css] [Html.text txt]
+    el = span [class cl, css, onClick address (JumpToStep index)] [Html.text txt]
   in
     if cl == "act_stock" then [br [] [], el] else [el]
 
 -- full scene display
-scene : RoverAnim -> (Int, Int) -> Html
-scene anim (w, h) =
+view : Address Update -> RoverAnim -> Html
+view address anim =
   let (mw, mh) = moonExt
       animInt = Anim.interp anim
       rover = animInt.rover
       steps = List.take anim.step anim.route
-      opacities = List.map
+      indices = [0..(List.length anim.route - 1)]
+      opacities = indices |> List.map
         (\i -> if i < anim.step then 1
           else if i == anim.step then lerp futureStepOpacity 1 anim.t
           else futureStepOpacity)
-        [0..(List.length anim.route - 1)]
-      actionElems = (List.map2 actionElem opacities anim.route) |> List.concat
+      actionElems =
+        List.map3 (actionElem address) indices opacities anim.route
+        |> List.concat
   in
   div []
   [ fromElement (collage mw mh

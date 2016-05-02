@@ -101,9 +101,9 @@ evalAction action rover =
 
 
 --  evaluates list of actions from the initial state
-evalActions : List Action -> Maybe Rover
-evalActions actions =
-  List.foldl (\a r -> evalAction a r) (Just {init | fuel = 1, spare = 1}) actions
+evalActions : Maybe Rover -> List Action -> Maybe Rover
+evalActions rover actions =
+  List.foldl (\a r -> evalAction a r) rover actions
 
 
 -- computes total fuel used on the route

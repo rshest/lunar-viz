@@ -102,3 +102,14 @@ advance anim dt =
             Nothing -> {anim | status = Stuck}
             Just rover -> advance {anim | step = anim.step + 1,
               t = t - 1, rover = rover} 0
+
+
+--  advances animation from the beginning to the given step
+jumpToStep : RoverAnim -> Int -> RoverAnim
+jumpToStep anim n =
+  let route = anim.route |> List.take n
+      rover = case Model.evalActions (Just Model.init) route of
+        Just r -> r
+        Nothing -> anim.rover
+  in
+    {anim | step = n, t = 0, rover = rover}
