@@ -1,4 +1,4 @@
-module Utils where
+module Utils exposing (..)
 
 epsilon : Float
 epsilon = 0.0001

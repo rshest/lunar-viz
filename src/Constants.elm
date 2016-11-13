@@ -1,4 +1,4 @@
-module Constants where
+module Constants exposing (..)
 
 --  model
 fuelConsumption = 5

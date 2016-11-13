@@ -1,4 +1,4 @@
-module View where
+module View exposing (..)
 
 import Utils exposing (..)
 import Constants exposing (..)
@@ -6,15 +6,13 @@ import Model exposing (Action)
 import Anim exposing (RoverAnim)
 
 import Color exposing (..)
-import Transform2D exposing (..)
-import Graphics.Element exposing (..)
-import Graphics.Collage exposing (..)
+import Transform exposing (..)
+import Element exposing (..)
+import Collage exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-
-import Signal exposing (Address)
 
 
 type Update =
@@ -124,7 +122,7 @@ view address anim =
         |> List.concat
   in
   div []
-  [ fromElement (collage mw mh
+  [ toHtml (collage mw mh
     [
       img "moon" mw mh |> toForm
     , roverPath rover.pos

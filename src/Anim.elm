@@ -1,4 +1,4 @@
-module Anim where
+module Anim exposing (..)
 
 import Utils
 import Constants exposing (..)
@@ -43,10 +43,9 @@ curAction anim =
 interp : RoverAnim -> RoverAnim
 interp anim  =
   let interpEval =
-    \a ->
-      case Model.evalAction a (Just anim.rover) of
-        Nothing -> anim
-        Just rover -> {anim | rover = rover}
+    \a -> case Model.evalAction a (Just anim.rover) of
+            Nothing -> anim
+            Just rover -> {anim | rover = rover}
   in
     case curAction anim of
       Just (Move n) -> interpEval (Move (anim.t*n))

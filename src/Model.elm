@@ -1,4 +1,4 @@
-module Model where
+module Model exposing (..)
 
 import Utils
 import Constants exposing (..)
