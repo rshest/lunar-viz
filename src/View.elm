@@ -86,8 +86,8 @@ roverPath pos =
 
 
 -- html element for a single action text represenation
-actionElem : Address Update -> Int -> Float -> Action -> List Html
-actionElem address index opacity action =
+actionElem : Update -> Int -> Float -> Action -> List Html
+actionElem index opacity action =
   let
     textNum = \t n -> t ++ toString(n)
     (cl, txt) =
@@ -101,13 +101,13 @@ actionElem address index opacity action =
           (if isClose n 1 then "stock" else (textNum "stock " n)))
         Model.Dump -> ("act_dump", "dump")
     css = style [("opacity", (toString opacity))]
-    el = span [class cl, css, onClick address (JumpToStep index)] [Html.text txt]
+    el = span [class cl, css, onClick (JumpToStep index)] [Html.text txt]
   in
     if cl == "act_stock" then [br [] [], el] else [el]
 
 -- full scene display
-view : Address Update -> RoverAnim -> Html
-view address anim =
+view : Update -> RoverAnim -> Html
+view anim =
   let (mw, mh) = moonExt
       animInt = Anim.interp anim
       rover = animInt.rover
@@ -118,7 +118,7 @@ view address anim =
           else if i == anim.step then lerp futureStepOpacity 1 anim.t
           else futureStepOpacity)
       actionElems =
-        List.map3 (actionElem address) indices opacities anim.route
+        List.map3 actionElem indices opacities anim.route
         |> List.concat
   in
   div []
