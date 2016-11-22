@@ -3,7 +3,7 @@ module Anim exposing (..)
 import Utils
 import Constants exposing (..)
 import Model exposing (..)
-
+import Msg exposing (..)
 
 type Status =
     InProgress
@@ -22,15 +22,15 @@ type alias RoverAnim =
 
 
 --  initial animation state
-init : RoverAnim
-init =
+init : (RoverAnim, Cmd Msg)
+init = (
   { rover = Model.init
   , spareOffs = restSpareOffs
   , step = 0
   , t = 0
   , status = InProgress
   , route = Model.planRoute
-  }
+  }, Cmd.none)
 
 
 --  returns current action for the animation
@@ -62,13 +62,13 @@ interp anim  =
 -- parabola equation for the tank dumping annimation
 dumpParabola : (Float, Float, Float)
 dumpParabola =
-  Utils.parabolaFrom3pt (0, 0) ((fst restSpareOffs)/2, dumpHeight) restSpareOffs
+  Utils.parabolaFrom3pt (0, 0) ((Tuple.first restSpareOffs)/2, dumpHeight) restSpareOffs
 
 
 -- interpolates dump animation (pick is reverse)
 dumpInterp : RoverAnim -> Float -> Float -> RoverAnim
 dumpInterp anim n t =
-  let x = (fst restSpareOffs)*(1 - t)
+  let x = (Tuple.first restSpareOffs)*(1 - t)
       y =  Utils.parabolaPt dumpParabola x
       rover = anim.rover
   in

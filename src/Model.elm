@@ -39,7 +39,7 @@ takeFuelAt pos fuel barrels =
     (bpos, bfuel)::bs ->
       if Utils.isClose (Utils.frac pos) (Utils.frac bpos) && bfuel >= fuel then
         Just ((bpos, bfuel - fuel)::bs)
-      else takeFuelAt pos fuel bs `Maybe.andThen` \b -> Just ((bpos, bfuel)::b)
+      else takeFuelAt pos fuel bs |> Maybe.andThen (\b -> Just ((bpos, bfuel)::b))
     _ -> if Utils.isClose pos 0 then (Just barrels) else Nothing
 
 
@@ -60,7 +60,7 @@ load : Float -> Rover -> Maybe Rover
 load n rover =
   if rover.fuel + n <= 1 then
     takeFuelAt rover.pos n rover.barrels
-    `Maybe.andThen` \b -> Just {rover | fuel = rover.fuel + n, barrels = b}
+    |> Maybe.andThen (\b -> Just {rover | fuel = rover.fuel + n, barrels = b})
   else Nothing
 
 
@@ -90,14 +90,14 @@ dump rover =
 --  evaluates a state according to an action
 evalAction : Action -> Maybe Rover -> Maybe Rover
 evalAction action rover =
-  rover `Maybe.andThen` \r ->
+  rover |> Maybe.andThen (\r ->
     case action of
       Move n -> move n r
       Load n -> load n r
       Fill n -> fill n r
       Pick n -> pick n r
       Stock n -> rover |> evalAction (Pick n) |> evalAction (Load (1 - r.fuel))
-      Dump -> dump r
+      Dump -> dump r)
 
 
 --  evaluates list of actions from the initial state

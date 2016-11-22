@@ -4,6 +4,7 @@ import Utils exposing (..)
 import Constants exposing (..)
 import Model exposing (Action)
 import Anim exposing (RoverAnim)
+import Msg exposing (..)
 
 import Color exposing (..)
 import Transform exposing (..)
@@ -13,13 +14,6 @@ import Collage exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-
-
-type Update =
-    Tick Float
-  | JumpToStep Int
-  | NoOp
-
 
 img : String -> Int -> Int -> Element
 img name w h = image w h ("img/" ++ name ++ ".png")
@@ -62,12 +56,12 @@ vehicle anim =
       {pos, dir, fuel, spare} = anim.rover
       wheelm = pos*dir
       shake = sin(pos*shakeSpeed)
-      soffs = (fst anim.spareOffs, snd anim.spareOffs - shake)
+      soffs = (Tuple.first anim.spareOffs, Tuple.second anim.spareOffs - shake)
   in [
-      barrel (fst tankOffs, snd tankOffs + shake) fuel
+      barrel (Tuple.first tankOffs, Tuple.second tankOffs + shake) fuel
     , img "rover" w h |> toForm |>  moveY (hoffs + shake)
-    , wheel wheelOffsL (wheelm + (fst wheelPhase))
-    , wheel wheelOffsR (wheelm + (snd wheelPhase))
+    , wheel wheelOffsL (wheelm + (Tuple.first wheelPhase))
+    , wheel wheelOffsR (wheelm + (Tuple.second wheelPhase))
     , if spare >= 0 then barrel soffs spare else group []
     ] |> groupTransform (scaleX -dir) |> moveRot (0, moonRad) (pos*2*pi)
 
@@ -77,7 +71,7 @@ roverPath : Float -> Form
 roverPath pos =
   let n = pos*pathGranularity
       nn = round n
-      range = if pos > 0 then ([0..nn] |> List.reverse) else [nn..0]
+      range = if pos > 0 then (List.range 0 nn |> List.reverse) else List.range nn 0
       i2pt = \i -> let ang = -(toFloat i)*2*pi*pos/n in
         (pathRad*sin(ang), pathRad*cos(ang))
       dottedLine = dashed blue
@@ -86,7 +80,7 @@ roverPath pos =
 
 
 -- html element for a single action text represenation
-actionElem : Update -> Int -> Float -> Action -> List Html
+actionElem : Int -> Float -> Action -> List (Html Msg)
 actionElem index opacity action =
   let
     textNum = \t n -> t ++ toString(n)
@@ -106,13 +100,13 @@ actionElem index opacity action =
     if cl == "act_stock" then [br [] [], el] else [el]
 
 -- full scene display
-view : Update -> RoverAnim -> Html
+view : RoverAnim -> Html Msg
 view anim =
   let (mw, mh) = moonExt
       animInt = Anim.interp anim
       rover = animInt.rover
       steps = List.take anim.step anim.route
-      indices = [0..(List.length anim.route - 1)]
+      indices = List.range 0 (List.length anim.route - 1)
       opacities = indices |> List.map
         (\i -> if i < anim.step then 1
           else if i == anim.step then lerp futureStepOpacity 1 anim.t
