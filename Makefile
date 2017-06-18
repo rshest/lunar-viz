@@ -1,3 +1,5 @@
+.PHONY: default test setup
+
 default:
 	elm-make src/Main.elm --yes --output gen/main.js
 
